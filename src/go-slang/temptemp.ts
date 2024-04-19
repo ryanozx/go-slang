@@ -13,23 +13,38 @@ package main
 //    "fmt"
 //)
 
-func GetFoo() {
-    var abc = 123;
-    hello := make(chan int, 10)
-    hello <- 123
-    abc = <-hello
-    //<-hello
-    //bye := make(chan int)
-    //bye <- 123
-    test := foo()
-    //fmt.Println(test)
+func GetFoo(cc chan int, gg chan int) {
+  gg <- 100
+  var abc = 123;
+  abc = <-gg
+  var aaa = 10
+  var bbb = 10
+  //hello := make(chan int, 10)
+  //hello <- 123
+  //abc = <-hello
+  //<-hello
+  //bye := make(chan int)
+  //bye <- 123
+  //test := foo()
+  //fmt.Println(test)
+  <-cc
 }
 func main() {
-  GetFoo();
-  foo();
+  print(xxx)
+  gogo := make(chan int, 10)
+  gggg := make(chan int)
+  go GetFoo(gogo, gggg);
+  foo(gogo, gggg);
+  gogo <- 19
+  gogo <- 11
 }
-func foo() int {
-    return 0
+func foo(cc chan int, gg chan int) int {
+  <-gg
+  gg<-11
+  <-cc
+  var ccc = 111;
+  car ddd = 11111;
+  return 0
 }
 `
 
@@ -38,14 +53,125 @@ func foo() int {
 GoslangToAstJson(gslang_code).then(result => {
   //console.log(result);
   const parsed_ast: nodes.File = parseFile(result)
-  console.log(JSON.stringify(parsed_ast, null, "  "))
+  //console.log(JSON.stringify(parsed_ast, null, "  "))
   const compiled_parsed_ast = compile(parsed_ast)
-  console.log(compiled_parsed_ast)
-  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
+  //console.log(compiled_parsed_ast)
+  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, false)
   vm.run()
 })
 
+/*
+[
+  EnterScopeInstruction { varCount: 3 },
+  LoadFunctionInstruction { arity: 5, addr: 3 },
+  GotoInstruction { dest: 20 },
+  IdentInstruction {
+    sym: 'cc',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
+  BasicLitInstruction { tokenType: 5, value: 10 },
+  SendInstruction {},
+  ChannelDeclarationInstruction {
+    BufferSize: 10,
+    ChannelPassType: 'int'
+  },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 2 }
+  },
+  IdentInstruction {
+    sym: 'hello',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 2 }
+  },
+  BasicLitInstruction { tokenType: 5, value: 123 },
+  SendInstruction {},
+  IdentInstruction {
+    sym: 'hello',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 2 }
+  },
+  UnOpInstruction { op: 36 },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  ChannelDeclarationInstruction {
+    BufferSize: undefined,
+    ChannelPassType: 'int'
+  },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 3 }
+  },
+  IdentInstruction {
+    sym: 'foo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  CallInstruction { arity: 0 },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 4 }
+  },
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 0 }
+  },
+  LoadFunctionInstruction { arity: 1, addr: 23 },
+  GotoInstruction { dest: 38 },
+  ChannelDeclarationInstruction {
+    BufferSize: undefined,
+    ChannelPassType: 'int'
+  },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
+  IdentInstruction {
+    sym: 'GetFoo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 0 }
+  },
+  IdentInstruction {
+    sym: 'gogo',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
+  GoInstruction { arity: 1 },
+  GotoInstruction { dest: 31 },
+  CallInstruction { arity: 1 },
+  DestroyGoroutineInstruction {},
+  IdentInstruction {
+    sym: 'foo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  IdentInstruction {
+    sym: 'gogo',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
+  GoInstruction { arity: 1 },
+  GotoInstruction { dest: 37 },
+  CallInstruction { arity: 1 },
+  DestroyGoroutineInstruction {},
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 1 }
+  },
+  LoadFunctionInstruction { arity: 1, addr: 41 },
+  GotoInstruction { dest: 47 },
+  IdentInstruction {
+    sym: 'cc',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
+  UnOpInstruction { op: 36 },
+  PopInstruction {},
+  BasicLitInstruction { tokenType: 5, value: 0 },
+  ResetInstruction {},
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  IdentInstruction {
+    sym: 'main',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 1 }
+  },
+  CallInstruction { arity: 0 },
+  ExitScopeInstruction {},
+  DoneInstruction {}
+]
 
+*/
 
 /*
 {
@@ -234,6 +360,158 @@ GoslangToAstJson(gslang_code).then(result => {
   },
   BasicLitInstruction { tokenType: 5, value: 123 },
   SendInstruction {},
+  IdentInstruction {
+    sym: 'foo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  CallInstruction { arity: 0 },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 2 }
+  },
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 0 }
+  },
+  LoadFunctionInstruction { arity: 0, addr: 18 },
+  GotoInstruction { dest: 25 },
+  IdentInstruction {
+    sym: 'GetFoo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 0 }
+  },
+  CallInstruction { arity: 0 },
+  PopInstruction {},
+  IdentInstruction {
+    sym: 'foo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  CallInstruction { arity: 0 },
+  PopInstruction {},
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 1 }
+  },
+  LoadFunctionInstruction { arity: 0, addr: 28 },
+  GotoInstruction { dest: 31 },
+  BasicLitInstruction { tokenType: 5, value: 0 },
+  ResetInstruction {},
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  IdentInstruction {
+    sym: 'main',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 1 }
+  },
+  CallInstruction { arity: 0 },
+  ExitScopeInstruction {},
+  DoneInstruction {}
+]
+*/
+
+/*
+[
+  EnterScopeInstruction { varCount: 3 },
+  LoadFunctionInstruction { arity: 3, addr: 3 },
+  GotoInstruction { dest: 15 },
+  ChannelDeclarationInstruction {
+    BufferSize: 10,
+    ChannelPassType: 'int'
+  },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  IdentInstruction {
+    sym: 'hello',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  BasicLitInstruction { tokenType: 5, value: 123 },
+  SendInstruction {},
+  IdentInstruction {
+    sym: 'abc',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
+  IdentInstruction {
+    sym: 'hello',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  SendInstruction {},
+  IdentInstruction {
+    sym: 'foo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  CallInstruction { arity: 0 },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 2 }
+  },
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 0 }
+  },
+  LoadFunctionInstruction { arity: 0, addr: 18 },
+  GotoInstruction { dest: 25 },
+  IdentInstruction {
+    sym: 'GetFoo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 0 }
+  },
+  CallInstruction { arity: 0 },
+  PopInstruction {},
+  IdentInstruction {
+    sym: 'foo',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  CallInstruction { arity: 0 },
+  PopInstruction {},
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 1 }
+  },
+  LoadFunctionInstruction { arity: 0, addr: 28 },
+  GotoInstruction { dest: 31 },
+  BasicLitInstruction { tokenType: 5, value: 0 },
+  ResetInstruction {},
+  ResetInstruction {},
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }
+  },
+  IdentInstruction {
+    sym: 'main',
+    pos: EnvironmentPos { env_offset: 2, frame_offset: 1 }
+  },
+  CallInstruction { arity: 0 },
+  ExitScopeInstruction {},
+  DoneInstruction {}
+]
+*/
+
+
+
+
+/*
+[
+  EnterScopeInstruction { varCount: 3 },
+  LoadFunctionInstruction { arity: 3, addr: 3 },
+  GotoInstruction { dest: 15 },
+  ChannelDeclarationInstruction {
+    BufferSize: 10,
+    ChannelPassType: 'int'
+  },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  IdentInstruction {
+    sym: 'hello',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  BasicLitInstruction { tokenType: 5, value: 123 },
+  SendInstruction {},
+  IdentInstruction {
+    sym: 'hello',
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 1 }
+  },
+  UnOpInstruction { op: 36 },
+  AssignInstruction {
+    pos: EnvironmentPos { env_offset: 3, frame_offset: 0 }
+  },
   IdentInstruction {
     sym: 'foo',
     pos: EnvironmentPos { env_offset: 2, frame_offset: 2 }

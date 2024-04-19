@@ -12,7 +12,7 @@ export function stringToAst(input: string): nodes.File {
 export function parseFile(file: any): nodes.File {
   let declNodes: nodes.DeclarationNode[] = []
 
-  console.log(file['Decls'].length)
+  //console.log(file['Decls'].length)
   for (var decl of file['Decls']) {
     declNodes.push(parseDecl(decl))
   }
@@ -28,7 +28,7 @@ function parseExprNode(node: any): nodes.ExprNode {
     return undefined;
   }
   */
-  const nodeType = node['_type']
+  const nodeType = node['NodeType']
   switch (nodeType) {
     case 'Ident':
       return parseIdentNode(node)
@@ -281,7 +281,7 @@ function parseChanType(node: any): nodes.ChanNode {
 // Statements
 
 function parseStatement(node: any): nodes.StatementNode {
-  const type = node['_type']
+  const type = node['NodeType']
   switch (type) {
     case 'DeclStmt':
       return parseDeclStmt(node)
@@ -329,7 +329,7 @@ function parseStatement(node: any): nodes.StatementNode {
 }
 
 function parseDeclStmt(node: any): nodes.DeclStmt {
-  const decl = parseDecl(node['_type'])
+  const decl = parseDecl(node['Decl'])
   return new nodes.DeclStmt(decl)
 }
 
@@ -510,7 +510,7 @@ function parseRangeStmt(node: any): nodes.RangeStmt {
 // Declarations
 
 function parseDecl(decl: any): nodes.DeclarationNode {
-  const type: string = decl['_type']
+  const type: string = decl['NodeType']
   switch (type) {
     case 'GenDecl':
       return parseGenDecl(decl)

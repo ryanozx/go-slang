@@ -3,10 +3,11 @@ import * as Token from '../tokens/tokens'
 import { HeapBuffer } from '../heap/heap'
 import { HeapVal, ValType } from '../heap/heapVals'
 import { UnassignedVarError } from '../heap/errors'
-import { GoRoutine } from './goroutine'
+import { GoRoutine, GoRoutineQueue } from './goroutine'
 import { EmptyOsError, EmptyRtsError } from './errors'
 import { binop_microcode, unop_microcode } from './microcode'
 import { generateBuiltins } from './builtins'
+import { BadStmtError } from '../ast/errors'
 
 const TIME_QUANTUM = 50 // switch goroutines after 50 lines executed
 
@@ -41,6 +42,8 @@ export class GoVirtualMachine {
       }
       if (this.debugMode) {
         console.log('Running routine %d', currRoutine.id)
+        //console.log(mem.grQueue.size)
+        //if (mem.grQueue.size == 2){return}
       }
       let step = 0
       let inst: Inst.Instruction
@@ -84,14 +87,19 @@ export class GoVirtualMachine {
             const un_op_type = (inst as Inst.UnOpInstruction).op
             if (un_op_type === Token.token.ARROW){
               const receving_channel_address = unxAddr
+              //console.log(currRoutine.id, "receiving")
               const received = mem.heap_recv_channel(receving_channel_address)
               if (received !== undefined) {
                 OS.push(received)
+                step += TIME_QUANTUM
+                //console.log("RECEIVED")
+                return
                 //currRoutine.PC++
               }
               else {
                 OS.push(receving_channel_address)
                 currRoutine.PC--
+                currRoutine.blocked = true
               }
               break
             }
@@ -279,15 +287,21 @@ export class GoVirtualMachine {
             OS.push(declared_channel_address) // no type yet...
             break
           case Inst.InstType.SEND:
+            //console.log(currRoutine.id, "sending")
             //const ChanSendInst: Inst.SendInstruction = (inst as Inst.SendInstruction)
             const sending_val = Number(OS.pop())
             const send_channel_address = Number(OS.pop())
             if (mem.heap_send_channel(send_channel_address, sending_val) === null) {
               //currRoutine.PC++
+              //console.log("SENTED")
+              //return
+              step += TIME_QUANTUM
             }
             else {
               OS.push(send_channel_address)
+              OS.push(sending_val)
               currRoutine.PC--
+              currRoutine.blocked = true
               //console.log(currRoutine.PC)
             }
             break
@@ -306,6 +320,7 @@ export class GoVirtualMachine {
       if (!currRoutine.terminate) {
         mem.grQueue.push(currRoutine)
       }
+
     }
   }
 }
