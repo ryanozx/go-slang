@@ -271,10 +271,11 @@ function parseMapType(node: any): nodes.MapType {
   return new nodes.MapType(key, val)
 }
 
-function parseChanType(node: any): nodes.ChanType {
-  const dir: ChanDir = node['Dir']
-  const val = parseExprNode(node['Value'])
-  return new nodes.ChanType(dir, val)
+function parseChanType(node: any): nodes.ChanNode {
+  const dir: string = node['Dir']
+  //const val = parseExprNode(node['Value'])
+  const passType: string = (node["Value"] as nodes.Ident)["Name"]
+  return new nodes.ChanNode(dir, passType)
 }
 
 // Statements
@@ -555,7 +556,6 @@ function parseSpecNode(node: any): nodes.SpecNode {
     case 'ImportSpec':
       return new nodes.ImportSpec()
   }
-  console.log(node)
   throw new BadSpecError(type)
 }
 

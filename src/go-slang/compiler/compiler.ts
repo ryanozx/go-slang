@@ -1,3 +1,4 @@
+import { error } from '../../stepper/lib'
 import { nodeType } from '../ast/nodeTypes'
 import * as nodes from '../ast/nodes'
 import {
@@ -110,6 +111,9 @@ function compileNode(node: nodes.GoNode, env: CompileEnvironment, doNotExtendEnv
     case nodeType.INCDEC:
       compileIncDecStmt(node as nodes.IncDecStmt, env)
       break
+    //case nodeType.CHAN:
+      //compileChannel
+      //break
     case nodeType.ILLEGAL:
       throw new IllegalInstructionError()
     default:
@@ -360,6 +364,35 @@ function compileBlock(node: nodes.BlockStmt, env: CompileEnvironment, doNotExten
     newEnv = env.compile_time_extend_environment(locals)
   }
   for (var stmt of node.List) {
+    const stmtType = stmt.getType()
+    if (stmtType === nodeType.ASSIGN) {
+      const assignmentStmt: nodes.AssignStmt = stmt as nodes.AssignStmt
+      if ((assignmentStmt).getTokType() === Token.token.DEFINE) {
+        // declaration + assignment stmt
+        if ((((assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func) as nodes.Ident).Name === "make") {
+          // channel declaration/construction (could be slice too technically)
+          const channelParams: nodes.ExprNode[] | undefined = (assignmentStmt.RightHandSide[0] as nodes.CallExpr).Args
+          if (channelParams === undefined) {
+            throw new Error("Channel Parameters not declared properly")
+          }
+          const ChannelPassType: string = (channelParams[0] as nodes.ChanNode).PassType
+          var ChannelBufferSize: number | undefined = undefined
+          // for direction if got time
+          //(channelParams[0] as nodes.ChanNode).Dir
+          if (channelParams[1] !== undefined){
+            if ("Value" in channelParams[1]) {
+              ChannelBufferSize = Number(channelParams[1]["Value"])
+              if (isNaN(ChannelBufferSize)) {
+                throw new Error("Invalid Channel Buffer Size")
+              }
+            }
+          }
+          instrs[lidx++] = new Instruction.ChannelDeclarationInstruction(ChannelPassType, ChannelBufferSize)
+          instrs[lidx++] = new Instruction.AssignInstruction(env.compile_time_environment_position((assignmentStmt.LeftHandSide[0] as nodes.Ident).Name))
+          continue
+          }
+      }
+    }
     compileNode(stmt, newEnv)
   }
   if (scopeRequired) {

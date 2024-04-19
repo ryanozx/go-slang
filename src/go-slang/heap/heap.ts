@@ -48,6 +48,8 @@ const POINTER_TAG = 24
 const SEMAPHORE_TAG = 25
 const WAITGROUP_TAG = 26
 
+const CHANNEL_BUFFER = 27
+
 const min_gc_size = 256 // do not trigger gc so long as size used <= 2 * min_gc_size
 
 const WHITE = 0 // node not visited (yet)
@@ -978,6 +980,88 @@ export class HeapBuffer {
     }
     return frame
   }
+  // first 8 bytes of channel: 1 byte tag, 1 byte lock (test and set), 1 byte startIdx,
+  // 1 byte channelSize, 1 byte channelcurrentfilled, 2 bytes numChildren/channel capacity, 1 byte gc + colour
+  public heap_allocate_channel(BufferSize: number|undefined): number {
+    const channel_address = this.allocate(CHANNEL_TAG, 1)
+    this.heap_set_byte_at_offset(channel_address, 1, 0)
+    var BufferPointersAddress: number
+    if (BufferSize === undefined) {
+      BufferPointersAddress = this.allocate(CHANNEL_BUFFER, 2)
+      this.heap_set_byte_at_offset(channel_address, 3, 0)
+      this.heap_set_2_bytes_at_offset(channel_address, 5, 2)
+    }
+    else {
+      BufferPointersAddress = this.allocate(CHANNEL_BUFFER, BufferSize+1)
+      this.heap_set_byte_at_offset(channel_address, 3, BufferSize)
+      this.heap_set_2_bytes_at_offset(channel_address, 5, BufferSize+1)
+    }
+    this.heap_set_byte_at_offset(channel_address, 2, BufferPointersAddress)
+    this.heap_set_byte_at_offset(channel_address, 4, 0)
+    return channel_address
+  }
+
+  public heap_recv_channel(channel_address: number):any {
+    if (this.heap_get_byte_at_offset(channel_address, 3) === 0) {
+      // unbuffered channel
+      if (this.heap_get_byte_at_offset(channel_address, 4) === 1) {
+        // filled
+        // reset lock and give
+        this.heap_set_byte_at_offset(channel_address, 1, 0)
+        return this.getInt32(this.getPointerAddress(this.heap_get_child(channel_address, 1)))
+      }
+      this.heap_set_byte_at_offset(channel_address, 1, 1) // ready to receive
+      return undefined // ready up and pc change and wait
+    }
+    var current_filled_level = this.heap_get_byte_at_offset(channel_address, 4)
+    if (current_filled_level === 0) {
+      return undefined // block cos nothing to receive
+    }
+    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level-1))
+    return this.getInt32(this.getPointerAddress(this.heap_get_child(channel_address, (current_filled_level))))
+  }
+  public heap_send_channel(channel_address: number, send_val: number):any {
+    if (this.heap_get_byte_at_offset(channel_address, 3) === 0) {
+      if (this.heap_get_byte_at_offset(channel_address, 1) === 1) {
+        this.heap_set_child(channel_address, 1, this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
+        return null // sucessfully sent
+      }
+      return undefined // pc change and wait for receiver to ready up
+    }
+    var current_filled_level = this.heap_get_byte_at_offset(channel_address, 4)
+    const channel_buffer_size = this.heap_get_byte_at_offset(channel_address, 3)
+    if (current_filled_level === channel_buffer_size) {
+      return undefined // full pc change and wait
+    }
+    this.heap_set_child(channel_address, (current_filled_level+1), this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
+    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level+1))
+    return null // successfully sent
+  }
+
+/*
+  // pointer
+  // [1 byte tag, 4 bytes address, 2 bytes #size, 1 byte gc + colour]
+  // #size = 1
+  public heap_allocate_pointer(address: number): number {
+    const pAddr = this.allocate(POINTER_TAG, 1)
+    this.heap_set_4_bytes_at_offset(pAddr, 1, address)
+    return pAddr
+  }
+
+  public isPointer(address: number): boolean {
+    this.addressCheck(address)
+    return this.heap_get_tag(address) === POINTER_TAG
+  }
+
+  public getPointerAddress(address: number): number {
+    if (!this.isPointer(address)) {
+      const tag = this.heap_get_tag(address)
+      throw new BadTagError(POINTER_TAG, tag)
+    }
+    return this.heap_get_4_bytes_at_offset(address, 1)
+  }
+*/
+
 
   private addressToValType(address: number): ValType {
     switch (this.heap_get_tag(address)) {
