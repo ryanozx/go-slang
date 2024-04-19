@@ -28,5 +28,6 @@ export enum nodeType {
   SEND,
   CONT,
   BREAK,
-  INCDEC
+  INCDEC,
+  CHAN
 }

@@ -976,3 +976,23 @@ export class File implements GoNode {
     this.Unresolved = []
   }
 }
+export class ChanNode implements ExprNode {
+  Dir: string
+  PassType: string
+  
+  getType(): nodeType {
+    return nodeType.CHAN
+  }
+
+  valuesProduced(): number {
+    return 0
+  }
+
+  constructor(
+    dir: string,
+    passType: string
+  ) {
+    this.Dir = dir
+    this.PassType = passType
+  }
+}

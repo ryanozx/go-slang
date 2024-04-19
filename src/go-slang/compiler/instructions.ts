@@ -22,7 +22,9 @@ export enum InstType {
   GO_DEST,
   SEND,
   CONT,
-  BREAK
+  BREAK,
+  CHAND,
+  CHANU
 }
 
 export interface Instruction {
@@ -308,5 +310,44 @@ export class BreakInstruction implements Instruction {
 
   stringRep(): string {
     return 'BREAK'
+  }
+}
+
+export class ChannelDeclarationInstruction implements Instruction {
+  BufferSize: number | undefined
+  ChannelPassType: string
+  // buffer-ready(unbuffered) or buffer-full(buffered) implemented in heap
+  // no fixed direction for now!
+
+  constructor(channelPassType: string, bufferSize: number | undefined) {
+    this.BufferSize = bufferSize
+    this.ChannelPassType = channelPassType
+  }
+
+  getType(): InstType {
+    return InstType.CHAND
+  }
+
+  stringRep(): string {
+    return `Channel Declared with ${this.BufferSize} buffer`
+  }
+}
+
+export class ChannelUseInstruction implements Instruction {
+  //BufferSize: number | undefined
+  ChannelDirection:string // "BOTH"( mainly for passing into function as params!! ), "RECV", "SEND"
+  // buffer-ready(unbuffered) or buffer-full(buffered) implemented in heap
+  // no fixed direction for now!
+
+  constructor(channelDirection:string) {
+    this.ChannelDirection = channelDirection
+  }
+
+  getType(): InstType {
+    return InstType.CHANU
+  }
+
+  stringRep(): string {
+    return `Channel Used with ${this.ChannelDirection} direction (BOTH => used as func param)`
   }
 }
