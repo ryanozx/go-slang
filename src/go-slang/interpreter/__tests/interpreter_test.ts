@@ -56,13 +56,13 @@ const prog3_json = `
                 }
               },
               "Value": "fmt",
-              "_type": "BasicLit"
+              "NodeType": "BasicLit"
             },
-            "_type": "ImportSpec"
+            "NodeType": "ImportSpec"
           }
         ],
         "Tok": "import",
-        "_type": "GenDecl"
+        "NodeType": "GenDecl"
       },
       {
         "Body": {
@@ -90,7 +90,7 @@ const prog3_json = `
                           }
                         },
                         "Name": "f",
-                        "_type": "Ident"
+                        "NodeType": "Ident"
                       }
                     ],
                     "Loc": {
@@ -130,7 +130,7 @@ const prog3_json = `
                                     }
                                   },
                                   "Name": "z",
-                                  "_type": "Ident"
+                                  "NodeType": "Ident"
                                 }
                               ],
                               "Loc": {
@@ -181,7 +181,7 @@ const prog3_json = `
                                       }
                                     },
                                     "Value": "2",
-                                    "_type": "BasicLit"
+                                    "NodeType": "BasicLit"
                                   },
                                   "Y": {
                                     "Loc": {
@@ -199,13 +199,13 @@ const prog3_json = `
                                       }
                                     },
                                     "Name": "y",
-                                    "_type": "Ident"
+                                    "NodeType": "Ident"
                                   },
-                                  "_type": "BinaryExpr"
+                                  "NodeType": "BinaryExpr"
                                 }
                               ],
                               "Tok": ":=",
-                              "_type": "AssignStmt"
+                              "NodeType": "AssignStmt"
                             },
                             {
                               "Loc": {
@@ -239,11 +239,11 @@ const prog3_json = `
                                     }
                                   },
                                   "Name": "z",
-                                  "_type": "Ident"
+                                  "NodeType": "Ident"
                                 }
                               ],
                               "Return": 116,
-                              "_type": "ReturnStmt"
+                              "NodeType": "ReturnStmt"
                             }
                           ],
                           "Loc": {
@@ -261,7 +261,7 @@ const prog3_json = `
                             }
                           },
                           "Rbrace": 127,
-                          "_type": "BlockStmt"
+                          "NodeType": "BlockStmt"
                         },
                         "Loc": {
                           "End": {
@@ -328,7 +328,7 @@ const prog3_json = `
                                       }
                                     },
                                     "Name": "y",
-                                    "_type": "Ident"
+                                    "NodeType": "Ident"
                                   }
                                 ],
                                 "Type": {
@@ -347,9 +347,9 @@ const prog3_json = `
                                     }
                                   },
                                   "Name": "int",
-                                  "_type": "Ident"
+                                  "NodeType": "Ident"
                                 },
-                                "_type": "Field"
+                                "NodeType": "Field"
                               }
                             ],
                             "Loc": {
@@ -367,7 +367,7 @@ const prog3_json = `
                               }
                             },
                             "Opening": 83,
-                            "_type": "FieldList"
+                            "NodeType": "FieldList"
                           },
                           "Results": {
                             "Closing": 0,
@@ -404,9 +404,9 @@ const prog3_json = `
                                     }
                                   },
                                   "Name": "int",
-                                  "_type": "Ident"
+                                  "NodeType": "Ident"
                                 },
-                                "_type": "Field"
+                                "NodeType": "Field"
                               }
                             ],
                             "Loc": {
@@ -424,15 +424,15 @@ const prog3_json = `
                               }
                             },
                             "Opening": 0,
-                            "_type": "FieldList"
+                            "NodeType": "FieldList"
                           },
-                          "_type": "FuncType"
+                          "NodeType": "FuncType"
                         },
-                        "_type": "FuncLit"
+                        "NodeType": "FuncLit"
                       }
                     ],
                     "Tok": ":=",
-                    "_type": "AssignStmt"
+                    "NodeType": "AssignStmt"
                   }
                 ],
                 "Loc": {
@@ -450,7 +450,7 @@ const prog3_json = `
                   }
                 },
                 "Rbrace": 131,
-                "_type": "BlockStmt"
+                "NodeType": "BlockStmt"
               },
               "Cond": {
                 "Loc": {
@@ -484,7 +484,7 @@ const prog3_json = `
                     }
                   },
                   "Name": "x",
-                  "_type": "Ident"
+                  "NodeType": "Ident"
                 },
                 "Y": {
                   "Kind": "INT",
@@ -503,9 +503,9 @@ const prog3_json = `
                     }
                   },
                   "Value": "10",
-                  "_type": "BasicLit"
+                  "NodeType": "BasicLit"
                 },
-                "_type": "BinaryExpr"
+                "NodeType": "BinaryExpr"
               },
               "For": 45,
               "Init": {
@@ -526,7 +526,7 @@ const prog3_json = `
                       }
                     },
                     "Name": "x",
-                    "_type": "Ident"
+                    "NodeType": "Ident"
                   }
                 ],
                 "Loc": {
@@ -561,11 +561,11 @@ const prog3_json = `
                       }
                     },
                     "Value": "0",
-                    "_type": "BasicLit"
+                    "NodeType": "BasicLit"
                   }
                 ],
                 "Tok": ":=",
-                "_type": "AssignStmt"
+                "NodeType": "AssignStmt"
               },
               "Loc": {
                 "End": {
@@ -613,11 +613,11 @@ const prog3_json = `
                     }
                   },
                   "Name": "x",
-                  "_type": "Ident"
+                  "NodeType": "Ident"
                 },
-                "_type": "IncDecStmt"
+                "NodeType": "IncDecStmt"
               },
-              "_type": "ForStmt"
+              "NodeType": "ForStmt"
             }
           ],
           "Loc": {
@@ -635,7 +635,7 @@ const prog3_json = `
             }
           },
           "Rbrace": 133,
-          "_type": "BlockStmt"
+          "NodeType": "BlockStmt"
         },
         "Loc": {
           "End": {
@@ -667,7 +667,7 @@ const prog3_json = `
             }
           },
           "Name": "main",
-          "_type": "Ident"
+          "NodeType": "Ident"
         },
         "Type": {
           "Func": 29,
@@ -703,11 +703,11 @@ const prog3_json = `
               }
             },
             "Opening": 38,
-            "_type": "FieldList"
+            "NodeType": "FieldList"
           },
-          "_type": "FuncType"
+          "NodeType": "FuncType"
         },
-        "_type": "FuncDecl"
+        "NodeType": "FuncDecl"
       }
     ],
     "Imports": [
@@ -743,9 +743,9 @@ const prog3_json = `
             }
           },
           "Value": "fmt",
-          "_type": "BasicLit"
+          "NodeType": "BasicLit"
         },
-        "_type": "ImportSpec"
+        "NodeType": "ImportSpec"
       }
     ],
     "Loc": {
@@ -778,7 +778,7 @@ const prog3_json = `
         }
       },
       "Name": "main",
-      "_type": "Ident"
+      "NodeType": "Ident"
     },
     "Package": 1,
     "Unresolved": [
@@ -798,7 +798,7 @@ const prog3_json = `
           }
         },
         "Name": "int",
-        "_type": "Ident"
+        "NodeType": "Ident"
       },
       {
         "Loc": {
@@ -816,10 +816,10 @@ const prog3_json = `
           }
         },
         "Name": "int",
-        "_type": "Ident"
+        "NodeType": "Ident"
       }
     ],
-    "_type": "File"
+    "NodeType": "File"
   }`
 
 const prog3_inst = compile(stringToAst(prog3_json))
