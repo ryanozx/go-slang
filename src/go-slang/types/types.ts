@@ -61,14 +61,3 @@ export function ChCanReceive(chStatus: ChanDir): boolean {
 export function ChCanSend(chStatus: ChanDir): boolean {
   return (chStatus & ChSend) != 0
 }
-
-export class Type {
-  Width: number
-}
-
-/*
-class Field {
-    flags: number;
-    // embedded: number;
-
-} */

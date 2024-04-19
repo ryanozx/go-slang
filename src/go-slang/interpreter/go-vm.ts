@@ -254,7 +254,7 @@ export class GoVirtualMachine {
               }
               newGrOs.push(addr)
             }
-            const newRoutine = new GoRoutine(globalEnv, routineId++, currRoutine.PC + 1)
+            const newRoutine = new GoRoutine(currRoutine.ENV, routineId++, currRoutine.PC + 1)
             newRoutine.OS = newGrOs.reverse()
             mem.grQueue.push(newRoutine)
             break

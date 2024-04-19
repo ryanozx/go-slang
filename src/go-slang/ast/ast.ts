@@ -28,7 +28,7 @@ function parseExprNode(node: any): nodes.ExprNode {
     return undefined;
   }
   */
-  const nodeType = node['_type']
+  const nodeType = node['NodeType']
   switch (nodeType) {
     case 'Ident':
       return parseIdentNode(node)
@@ -280,7 +280,7 @@ function parseChanType(node: any): nodes.ChanType {
 // Statements
 
 function parseStatement(node: any): nodes.StatementNode {
-  const type = node['_type']
+  const type = node['NodeType']
   switch (type) {
     case 'DeclStmt':
       return parseDeclStmt(node)
@@ -328,7 +328,7 @@ function parseStatement(node: any): nodes.StatementNode {
 }
 
 function parseDeclStmt(node: any): nodes.DeclStmt {
-  const decl = parseDecl(node['_type'])
+  const decl = parseDecl(node['Decl'])
   return new nodes.DeclStmt(decl)
 }
 
@@ -509,7 +509,7 @@ function parseRangeStmt(node: any): nodes.RangeStmt {
 // Declarations
 
 function parseDecl(decl: any): nodes.DeclarationNode {
-  const type: string = decl['_type']
+  const type: string = decl['NodeType']
   switch (type) {
     case 'GenDecl':
       return parseGenDecl(decl)
@@ -546,7 +546,7 @@ function parseFuncDecl(decl: any): nodes.FuncDecl {
 }
 
 function parseSpecNode(node: any): nodes.SpecNode {
-  const type: string = node['_type']
+  const type: string = node['NodeType']
   switch (type) {
     case 'ValueSpec':
       return parseValueSpec(node)

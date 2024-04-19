@@ -123,7 +123,7 @@ function compileLiteral(node: nodes.BasicLit, _: CompileEnvironment) {
     case Token.token.INT:
       instrs[lidx++] = new Instruction.BasicLitInstruction(tag, Number(node.Value))
       return
-    case Token.token.CHAR, Token.token.STRING:
+    case (Token.token.CHAR, Token.token.STRING):
       instrs[lidx++] = new Instruction.BasicLitInstruction(tag, node.Value)
       return
     case Token.token.FLOAT:
@@ -169,17 +169,17 @@ function compileBinaryOp(node: nodes.BinaryExpr, env: CompileEnvironment) {
       compileNode(node.Y, env)
       gotoInst.setGotoDest(lidx)
       break
-    case Token.token.ADD_ASSIGN ,
-      Token.token.SUB_ASSIGN ,
-      Token.token.MUL_ASSIGN ,
-      Token.token.QUO_ASSIGN ,
-      Token.token.REM_ASSIGN ,
-      Token.token.AND_ASSIGN ,
-      Token.token.OR_ASSIGN ,
-      Token.token.XOR_ASSIGN ,
-      Token.token.SHL_ASSIGN ,
-      Token.token.SHR_ASSIGN ,
-      Token.token.AND_NOT_ASSIGN:
+    case (Token.token.ADD_ASSIGN,
+    Token.token.SUB_ASSIGN,
+    Token.token.MUL_ASSIGN,
+    Token.token.QUO_ASSIGN,
+    Token.token.REM_ASSIGN,
+    Token.token.AND_ASSIGN,
+    Token.token.OR_ASSIGN,
+    Token.token.XOR_ASSIGN,
+    Token.token.SHL_ASSIGN,
+    Token.token.SHR_ASSIGN,
+    Token.token.AND_NOT_ASSIGN):
       compileNode(node.X, env)
       compileNode(node.Y, env)
       const newOp = Token.BinOpAssignMatch.get(op)

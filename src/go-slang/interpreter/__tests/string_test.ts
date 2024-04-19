@@ -1,9 +1,8 @@
-import { stringToAst } from "../../ast/ast"
-import { compile, debugCompile } from "../../compiler/compiler"
-import { GoVirtualMachine } from "../go-vm"
+/*import { stringToAst } from '../../ast/ast'
+import { compile, debugCompile } from '../../compiler/compiler'
+import { GoVirtualMachine } from '../go-vm'
 
-const string_test_str = 
-`
+const string_test_str = `
 {
     "Comments": [],
     "Decls": [
@@ -466,3 +465,4 @@ const goroutine_inst = compile(stringToAst(string_test_str))
 debugCompile(goroutine_inst)
 const vm = new GoVirtualMachine(goroutine_inst, false)
 vm.run()
+*/

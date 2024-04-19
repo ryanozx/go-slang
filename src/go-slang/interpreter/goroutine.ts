@@ -7,8 +7,6 @@ export class GoRoutine {
   PC: number
   blocked: boolean
   terminate: boolean
-  spawnNewRoutine: boolean
-  newRoutinePC: number
   id: number
 
   constructor(env: number, id: number, pc?: number) {

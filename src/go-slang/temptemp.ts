@@ -8,9 +8,9 @@ import { compile } from './compiler/compiler'
 // Takes goslang string and converts it to AST in JSON format
 let gslang_code = `package main
 
-//import (
-//    "fmt"
-//)
+import (
+    "fmt"
+)
 
 func GetFoo() {
     var abc = 123;
@@ -21,7 +21,12 @@ func GetFoo() {
 
 func foo() int {
     return 0
-}`
+}
+
+func main() {
+  GetFoo()
+}
+`
 
 // make needs to be defined and implemented like the mutexes and etc, else will crash since undefined!
 

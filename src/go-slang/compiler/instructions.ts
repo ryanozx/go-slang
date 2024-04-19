@@ -111,6 +111,10 @@ export class BinOpInstruction implements Instruction {
 export class JumpOnFalseInstruction implements Instruction {
   dest: number
 
+  constructor() {
+    this.dest = -1
+  }
+
   setJumpDest(dest: number) {
     this.dest = dest
   }
@@ -126,6 +130,10 @@ export class JumpOnFalseInstruction implements Instruction {
 
 export class GotoInstruction implements Instruction {
   dest: number
+
+  constructor() {
+    this.dest = -1
+  }
 
   setGotoDest(dest: number) {
     this.dest = dest

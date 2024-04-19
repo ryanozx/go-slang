@@ -89,6 +89,11 @@ export class HeapBuffer {
     this.curr_used = 0
     this.grQueue = new GoRoutineQueue()
     this.allocateLiteralValues()
+    this.true_pos = -1
+    this.false_pos = -1
+    this.nil_pos = -1
+    this.unassigned_pos = -1
+    this.undefined_pos = -1
   }
 
   public allocate(tag: number, size: number): number {
@@ -404,28 +409,9 @@ export class HeapBuffer {
     return this.view.getUint32(address * word_size + offset)
   }
 
-  private isFalse(address: number): boolean {
-    this.addressCheck(address)
-    return this.heap_get_tag(address) === FALSE_TAG
-  }
-
-  private isTrue(address: number): boolean {
-    this.addressCheck(address)
-    return this.heap_get_tag(address) === TRUE_TAG
-  }
-
-  private isBoolean(address: number): boolean {
-    return this.isTrue(address) || this.isFalse(address)
-  }
-
   public isUnassigned(address: number): boolean {
     this.addressCheck(address)
     return this.heap_get_tag(address) === UNASSIGNED_TAG
-  }
-
-  private isUndefined(address: number): boolean {
-    this.addressCheck(address)
-    return this.heap_get_tag(address) === UNDEFINED_TAG
   }
 
   private allocateLiteralValues() {
@@ -572,7 +558,7 @@ export class HeapBuffer {
     return addr
   }
 
-  public heap_set_frame_child(addr : number, child : number, valAddr : number) {
+  public heap_set_frame_child(addr: number, child: number, valAddr: number) {
     if (!this.isFrame(addr)) {
       const tag = this.heap_get_tag(addr)
       throw new BadTagError(FRAME_TAG, tag)
@@ -593,7 +579,7 @@ export class HeapBuffer {
     for (let i = 0; i < size; ++i) {
       const addr = this.heap_get_4_bytes_at_offset(address + 1 + i, 1)
       const value = this.heap_get(addr)
-      console.log("frame child pointer tag: %d", this.heap_get_tag(addr))
+      console.log('frame child pointer tag: %d', this.heap_get_tag(addr))
       console.log('%d: Value address: %d, Value: %d', i, addr, this.word_to_string(value))
     }
   }
@@ -697,11 +683,6 @@ export class HeapBuffer {
     return addr
   }
 
-  private isPair(address: number): boolean {
-    this.addressCheck(address)
-    return this.heap_get_tag(address) === PAIR_TAG
-  }
-
   // Uint16 can be used to represent char variables (utf-8)
   // [1 byte tag, 2 bytes unused, 2 byte uint16 value, 2 bytes #size, 1 byte gc + colour]
   // #size = 1
@@ -776,7 +757,7 @@ export class HeapBuffer {
   // characters are packed in every 2 bytes (utf-8) of the children nodes
   // #children = number of children nodes containing characters (include '\0')
   public heap_allocate_string(str: string): number {
-    const addr = this.allocate(STRING_TAG, Math.floor((str.length + 4)) / 4 + 1)
+    const addr = this.allocate(STRING_TAG, Math.floor(str.length + 4) / 4 + 1)
     this.heap_set_4_bytes_at_offset(addr, 1, str.length + 1)
     for (let i = 0; i < str.length; ++i) {
       this.heap_set_2_bytes_at_offset(addr + 1 + Math.floor(i / 4), (i * 2) % 8, str.charCodeAt(i))
@@ -793,7 +774,9 @@ export class HeapBuffer {
     const strlen = this.heap_get_4_bytes_at_offset(address, 1)
     const ascii_chars: number[] = []
     for (let i = 0; i < strlen - 1; ++i) {
-      ascii_chars.push(this.heap_get_2_bytes_at_offset(address + 1 + Math.floor(i / 4), (i * 2) % 8))
+      ascii_chars.push(
+        this.heap_get_2_bytes_at_offset(address + 1 + Math.floor(i / 4), (i * 2) % 8)
+      )
     }
     const out = String.fromCharCode(...ascii_chars)
     return out
@@ -972,7 +955,13 @@ export class HeapBuffer {
 
   public allocate_literals_frame(): number {
     const frame = this.heap_allocate_Frame(literal_keywords.length)
-    const literal_addr = [this.true_pos, this.false_pos, this.nil_pos, this.undefined_pos, this.unassigned_pos]
+    const literal_addr = [
+      this.true_pos,
+      this.false_pos,
+      this.nil_pos,
+      this.undefined_pos,
+      this.unassigned_pos
+    ]
     for (let i = 0; i < 5; ++i) {
       this.heap_set_frame_child(frame, i, literal_addr[i])
     }
@@ -1058,7 +1047,6 @@ export class HeapBuffer {
         return this.unassigned_pos
       case ValType.Undefined:
         return this.undefined_pos
-      
     }
 
     throw new InvalidValTypeError()
