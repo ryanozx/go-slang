@@ -274,6 +274,14 @@ function compileFor(node: nodes.ForStmt, env: CompileEnvironment) {
 
 // Future TODO: Function calls support the spread operator - consider integration
 function compileCall(node: nodes.CallExpr, env: CompileEnvironment) {
+  if ((node.Func as nodes.Ident)["Name"] === "close") {
+    if (node.Args !== undefined) {
+      compileNode(node.Args[0], env)
+      instrs[lidx++] = new Instruction.CloseChannel()
+      return
+    }
+    throw new Error("Close must have only 1 argument!!")
+  }
   compileNode(node.Func, env)
   let arity = 0
   if (node.Args !== undefined) {

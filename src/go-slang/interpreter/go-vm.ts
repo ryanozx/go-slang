@@ -8,6 +8,7 @@ import { EmptyOsError, EmptyRtsError } from './errors'
 import { binop_microcode, unop_microcode } from './microcode'
 import { generateBuiltins } from './builtins'
 import { BadStmtError } from '../ast/errors'
+import { cloneAndStripImportSpecifier } from '../../modules/preprocessor/constructors/contextSpecificConstructors'
 
 const TIME_QUANTUM = 50 // switch goroutines after 50 lines executed
 
@@ -43,7 +44,7 @@ export class GoVirtualMachine {
       if (this.debugMode) {
         console.log('Running routine %d', currRoutine.id)
         //console.log(mem.grQueue.size)
-        //if (mem.grQueue.size == 2){return}
+        //if (mem.grQueue.size === 3){return}
       }
       let step = 0
       let inst: Inst.Instruction
@@ -93,7 +94,7 @@ export class GoVirtualMachine {
                 OS.push(received)
                 step += TIME_QUANTUM
                 //console.log("RECEIVED")
-                return
+                //return
                 //currRoutine.PC++
               }
               else {
@@ -311,7 +312,11 @@ export class GoVirtualMachine {
             if (ChannelUseInst.ChannelDirection === "BOTH"){
               OS.push(channel_address)
             }
-
+            break
+          case Inst.InstType.CLOSE_CHAN:
+            const closing_channel_address = Number(OS.pop())
+            mem.heap_close_channel(closing_channel_address)
+            OS.push(-1)
             break
         }
         ++step
