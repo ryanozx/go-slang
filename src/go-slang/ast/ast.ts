@@ -1,4 +1,3 @@
-import { ChanDir } from '../types/types'
 import { BadDeclError, BadExprError, BadSpecError, BadStmtError } from './errors'
 import * as nodes from './nodes'
 
@@ -274,7 +273,7 @@ function parseMapType(node: any): nodes.MapType {
 function parseChanType(node: any): nodes.ChanNode {
   const dir: string = node['Dir']
   //const val = parseExprNode(node['Value'])
-  const passType: string = (node["Value"] as nodes.Ident)["Name"]
+  const passType: string = (node['Value'] as nodes.Ident)['Name']
   return new nodes.ChanNode(dir, passType)
 }
 

@@ -1,7 +1,7 @@
 import { GoslangToAstJson } from './parser'
 import { parseFile } from './ast/ast'
 import * as nodes from './ast/nodes'
-import { compile } from './compiler/compiler'
+import { compile, debugCompile } from './compiler/compiler'
 import { GoVirtualMachine } from './interpreter/go-vm'
 
 //import { writeFile } from "fs";
@@ -18,9 +18,6 @@ func GetFoo() {
     hello := make(chan int, 10)
     hello <- 123
     abc = <-hello
-    //<-hello
-    //bye := make(chan int)
-    //bye <- 123
     test := foo()
     //fmt.Println(test)
 }
@@ -42,14 +39,11 @@ func main() {
 GoslangToAstJson(gslang_code).then(result => {
   //console.log(result);
   const parsed_ast: nodes.File = parseFile(result)
-  console.log(JSON.stringify(parsed_ast, null, "  "))
   const compiled_parsed_ast = compile(parsed_ast)
-  console.log(compiled_parsed_ast)
+  debugCompile(compiled_parsed_ast)
   const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
   vm.run()
 })
-
-
 
 /*
 {

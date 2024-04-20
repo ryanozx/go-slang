@@ -82,14 +82,13 @@ export class GoVirtualMachine {
               throw new EmptyOsError()
             }
             const un_op_type = (inst as Inst.UnOpInstruction).op
-            if (un_op_type === Token.token.ARROW){
+            if (un_op_type === Token.token.ARROW) {
               const receving_channel_address = unxAddr
               const received = mem.heap_recv_channel(receving_channel_address)
               if (received !== undefined) {
                 OS.push(received)
                 //currRoutine.PC++
-              }
-              else {
+              } else {
                 OS.push(receving_channel_address)
                 currRoutine.PC--
               }
@@ -273,28 +272,30 @@ export class GoVirtualMachine {
             mem.grQueue.push(newRoutine)
             break
           case Inst.InstType.CHAND:
-            const ChannelDeclareInst: Inst.ChannelDeclarationInstruction = (inst as Inst.ChannelDeclarationInstruction)
-            const declared_channel_address = mem.heap_allocate_channel(ChannelDeclareInst.BufferSize)
+            const ChannelDeclareInst: Inst.ChannelDeclarationInstruction =
+              inst as Inst.ChannelDeclarationInstruction
+            const declared_channel_address = mem.heap_allocate_channel(
+              ChannelDeclareInst.BufferSize
+            )
             //console.log(declared_channel_address)
             OS.push(declared_channel_address) // no type yet...
             break
           case Inst.InstType.SEND:
             //const ChanSendInst: Inst.SendInstruction = (inst as Inst.SendInstruction)
-            const sending_val = Number(OS.pop())
+            const sending_val = mem.addrToVal(OS.pop() as number)
             const send_channel_address = Number(OS.pop())
-            if (mem.heap_send_channel(send_channel_address, sending_val) === null) {
+            if (mem.heap_send_channel(send_channel_address, sending_val.val as number) === null) {
               //currRoutine.PC++
-            }
-            else {
+            } else {
               OS.push(send_channel_address)
               currRoutine.PC--
               //console.log(currRoutine.PC)
             }
             break
           case Inst.InstType.CHANU:
-            const ChannelUseInst: Inst.ChannelUseInstruction = (inst as Inst.ChannelUseInstruction)
+            const ChannelUseInst: Inst.ChannelUseInstruction = inst as Inst.ChannelUseInstruction
             const channel_address = Number(OS.pop())
-            if (ChannelUseInst.ChannelDirection === "BOTH"){
+            if (ChannelUseInst.ChannelDirection === 'BOTH') {
               OS.push(channel_address)
             }
 

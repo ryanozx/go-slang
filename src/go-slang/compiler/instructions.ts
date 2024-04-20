@@ -343,11 +343,11 @@ export class ChannelDeclarationInstruction implements Instruction {
 
 export class ChannelUseInstruction implements Instruction {
   //BufferSize: number | undefined
-  ChannelDirection:string // "BOTH"( mainly for passing into function as params!! ), "RECV", "SEND"
+  ChannelDirection: string // "BOTH"( mainly for passing into function as params!! ), "RECV", "SEND"
   // buffer-ready(unbuffered) or buffer-full(buffered) implemented in heap
   // no fixed direction for now!
 
-  constructor(channelDirection:string) {
+  constructor(channelDirection: string) {
     this.ChannelDirection = channelDirection
   }
 
