@@ -7,8 +7,6 @@ import { GoRoutine } from './goroutine'
 import { EmptyOsError, EmptyRtsError } from './errors'
 import { binop_microcode, unop_microcode } from './microcode'
 import { generateBuiltins } from './builtins'
-import { BadStmtError } from '../ast/errors'
-import { cloneAndStripImportSpecifier } from '../../modules/preprocessor/constructors/contextSpecificConstructors'
 
 const TIME_QUANTUM = 50 // switch goroutines after 50 lines executed
 

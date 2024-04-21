@@ -8,7 +8,7 @@ import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
 import * as nodes from '../../ast/nodes'
 import { compile } from '../../compiler/compiler'
-import { GoVirtualMachine } from "../go-vm"
+import { GoVirtualMachine } from '../go-vm'
 
 // Takes goslang string and converts it to AST in JSON format
 let gslang_code = `

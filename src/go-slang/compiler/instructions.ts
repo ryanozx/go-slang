@@ -352,7 +352,6 @@ export class CloseChannel implements Instruction {
   }
 }
 
-
 // unused
 export class ChannelUseInstruction implements Instruction {
   //BufferSize: number | undefined

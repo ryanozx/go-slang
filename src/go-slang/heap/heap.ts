@@ -996,10 +996,10 @@ export class HeapBuffer {
     return channel_address
   }
 
-  public heap_recv_channel(channel_address: number):any {
+  public heap_recv_channel(channel_address: number): any {
     if (this.heap_get_byte_at_offset(channel_address, 1) === 255) {
       //console.log("RECEIVING ON CLOSED CHANNEL")
-      return 0; // returning default value 0
+      return 0 // returning default value 0
     }
     //console.log("receving: ", channel_address)
     const pipe_address = this.heap_get_byte_at_offset(channel_address, 2)
@@ -1022,12 +1022,14 @@ export class HeapBuffer {
       return undefined // block cos nothing to receive
     }
     current_filled_level--
-    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level))
-    return this.getInt32(this.getPointerAddress(this.heap_get_child(pipe_address, (current_filled_level))))
+    this.heap_set_byte_at_offset(channel_address, 4, current_filled_level)
+    return this.getInt32(
+      this.getPointerAddress(this.heap_get_child(pipe_address, current_filled_level))
+    )
   }
-  public heap_send_channel(channel_address: number, send_val: number):any {
+  public heap_send_channel(channel_address: number, send_val: number): any {
     if (this.heap_get_byte_at_offset(channel_address, 1) === 255) {
-      throw new Error("Panic! Attempting to send to a closed channel!")
+      throw new Error('Panic! Attempting to send to a closed channel!')
     }
     //console.log("sending: ", channel_address, send_val)
     const pipe_address = this.heap_get_byte_at_offset(channel_address, 2)
@@ -1052,9 +1054,13 @@ export class HeapBuffer {
     if (current_filled_level === channel_buffer_size) {
       return undefined // full pc change and wait
     }
-    this.heap_set_child(pipe_address, (current_filled_level), this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
+    this.heap_set_child(
+      pipe_address,
+      current_filled_level,
+      this.heap_allocate_pointer(this.heap_allocate_Int32(send_val))
+    )
     current_filled_level++
-    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level))
+    this.heap_set_byte_at_offset(channel_address, 4, current_filled_level)
     return null // successfully sent
   }
 
@@ -1063,7 +1069,7 @@ export class HeapBuffer {
     this.heap_set_byte_at_offset(channel_address, 1, 255)
   }
 
-/*
+  /*
   // pointer
   // [1 byte tag, 4 bytes address, 2 bytes #size, 1 byte gc + colour]
   // #size = 1
