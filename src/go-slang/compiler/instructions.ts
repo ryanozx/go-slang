@@ -24,7 +24,8 @@ export enum InstType {
   CONT,
   BREAK,
   CHAND,
-  CHANU
+  CHANU,
+  CLOSE_CHAN
 }
 
 export interface Instruction {
@@ -341,6 +342,18 @@ export class ChannelDeclarationInstruction implements Instruction {
   }
 }
 
+export class CloseChannel implements Instruction {
+  getType(): InstType {
+    return InstType.CLOSE_CHAN
+  }
+
+  stringRep(): string {
+    return `Close a channel pushed into the OS as arg`
+  }
+}
+
+
+// unused
 export class ChannelUseInstruction implements Instruction {
   //BufferSize: number | undefined
   ChannelDirection: string // "BOTH"( mainly for passing into function as params!! ), "RECV", "SEND"
