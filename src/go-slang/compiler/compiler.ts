@@ -207,11 +207,9 @@ function compileIf(node: nodes.IfStmt, env: CompileEnvironment) {
   let initIdents: EnvironmentSymbol[] = []
   if (node.Init !== undefined) {
     initIdents = scanOutDecls(node.Init)
-    if (initIdents.length !== 0) {
-      // initialisation statement may declare new variables, these should
-      // exist only within the implicit scope of the If block
-      instrs[lidx++] = new Instruction.EnterScopeInstruction(initIdents.length)
-    }
+    // initialisation statement may declare new variables, these should
+    // exist only within the implicit scope of the If block
+    instrs[lidx++] = new Instruction.EnterScopeInstruction(initIdents.length)
     compileNode(node.Init, env)
   }
   compileNode(node.Cond, env)
@@ -369,9 +367,9 @@ function compileBlock(node: nodes.BlockStmt, env: CompileEnvironment, doNotExten
       if (assignmentStmt.getTokType() === Token.token.DEFINE) {
         // declaration + assignment stmt
         if (
-          (assignmentStmt.RightHandSide[0].getType() === nodeType.CALL) && 
-          (assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func.getType() === nodeType.IDENT
-          && ((assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func as nodes.Ident).Name === 'make'
+          assignmentStmt.RightHandSide[0].getType() === nodeType.CALL &&
+          (assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func.getType() === nodeType.IDENT &&
+          ((assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func as nodes.Ident).Name === 'make'
         ) {
           // channel declaration/construction (could be slice too technically)
           const channelParams: nodes.ExprNode[] | undefined = (
@@ -518,7 +516,7 @@ function scanOutDecls(node: nodes.StatementNode): EnvironmentSymbol[] {
     case nodeType.ASSIGN:
       const assignStmt = node as nodes.AssignStmt
       if (assignStmt.getTokType() === Token.token.DEFINE) {
-        let decls : EnvironmentSymbol[] = []
+        let decls: EnvironmentSymbol[] = []
         for (var lhs of assignStmt.LeftHandSide) {
           if (lhs.getType() === nodeType.IDENT) {
             decls.push(new EnvironmentSymbol((lhs as nodes.Ident).Name))

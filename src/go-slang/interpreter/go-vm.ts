@@ -3,11 +3,10 @@ import * as Token from '../tokens/tokens'
 import { HeapBuffer } from '../heap/heap'
 import { HeapVal, ValType } from '../heap/heapVals'
 import { UnassignedVarError } from '../heap/errors'
-import { GoRoutine, GoRoutineQueue } from './goroutine'
+import { GoRoutine } from './goroutine'
 import { EmptyOsError, EmptyRtsError } from './errors'
 import { binop_microcode, unop_microcode } from './microcode'
 import { generateBuiltins } from './builtins'
-import { BadStmtError } from '../ast/errors'
 
 const TIME_QUANTUM = 50 // switch goroutines after 50 lines executed
 
@@ -298,8 +297,7 @@ export class GoVirtualMachine {
               //console.log("SENTED")
               //return
               currRoutine.terminate = true
-            }
-            else {
+            } else {
               OS.push(send_channel_address)
               OS.push(sending_val)
               currRoutine.PC--
@@ -322,7 +320,6 @@ export class GoVirtualMachine {
       if (!currRoutine.terminate) {
         mem.grQueue.push(currRoutine)
       }
-
     }
   }
 }

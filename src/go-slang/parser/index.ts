@@ -1,15 +1,19 @@
-export async function GoslangToAstJson(go_code: string): Promise<JSON> {
-  return (async function () {
-    const res = await fetch('http://localhost:8080/goslang-ast_json', {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json; charset=UTF-8'
-      },
-      method: 'POST',
-      body: JSON.stringify({ goslang_code: go_code })
-    }).then(res => res.json())
-    return res
-  })()
+export async function GoslangToAstJson(goslang_code: string): Promise<JSON> {
+  return fetch('http://localhost:8080/go-parse', {
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'same-origin',
+    body: JSON.stringify({ Code: goslang_code })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+    return response.json() as Promise<JSON>
+  })
 }
 
 /*

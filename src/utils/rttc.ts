@@ -9,7 +9,7 @@ const RHS = ' on right hand side of operation'
 export class TypeError extends RuntimeSourceError {
   public type = ErrorType.RUNTIME
   public severity = ErrorSeverity.ERROR
-  public location: es.SourceLocation
+  public declare location: es.SourceLocation
 
   constructor(
     node: Node,

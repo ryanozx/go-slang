@@ -19,18 +19,9 @@ func GetFoo(cc chan int, gg chan int) {
   abc = <-gg
   var aaa = 10
   var bbb = 10
-  //hello := make(chan int, 10)
-  //hello <- 123
-  //abc = <-hello
-  //<-hello
-  //bye := make(chan int)
-  //bye <- 123
-  //test := foo()
-  //fmt.Println(test)
-  <-cc
+  a := <-cc
 }
 func main() {
-  print(xxx)
   gogo := make(chan int, 10)
   gggg := make(chan int)
   go GetFoo(gogo, gggg);
@@ -44,6 +35,7 @@ func foo(cc chan int, gg chan int) int {
   <-cc
   var ccc = 111;
   car ddd = 11111;
+  print(ccc)
   return 0
 }
 
@@ -60,7 +52,8 @@ GoslangToAstJson(gslang_code).then(result => {
   //console.log(JSON.stringify(parsed_ast, null, "  "))
   const compiled_parsed_ast = compile(parsed_ast)
   //console.log(compiled_parsed_ast)
-  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, false)
+  debugCompile(compiled_parsed_ast)
+  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
   vm.run()
 })
 
@@ -486,9 +479,6 @@ GoslangToAstJson(gslang_code).then(result => {
   DoneInstruction {}
 ]
 */
-
-
-
 
 /*
 [

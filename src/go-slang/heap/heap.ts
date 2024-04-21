@@ -996,7 +996,7 @@ export class HeapBuffer {
     return channel_address
   }
 
-  public heap_recv_channel(channel_address: number):any {
+  public heap_recv_channel(channel_address: number): any {
     //console.log("receving: ", channel_address)
     const pipe_address = this.heap_get_byte_at_offset(channel_address, 2)
     if (this.heap_get_byte_at_offset(channel_address, 3) === 0) {
@@ -1017,16 +1017,22 @@ export class HeapBuffer {
     if (current_filled_level === 0) {
       return undefined // block cos nothing to receive
     }
-    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level-1))
-    return this.getInt32(this.getPointerAddress(this.heap_get_child(pipe_address, (current_filled_level))))
+    this.heap_set_byte_at_offset(channel_address, 4, current_filled_level - 1)
+    return this.getInt32(
+      this.getPointerAddress(this.heap_get_child(pipe_address, current_filled_level))
+    )
   }
-  public heap_send_channel(channel_address: number, send_val: number):any {
+  public heap_send_channel(channel_address: number, send_val: number): any {
     //console.log("sending: ", channel_address, send_val)
     const pipe_address = this.heap_get_byte_at_offset(channel_address, 2)
     if (this.heap_get_byte_at_offset(channel_address, 3) === 0) {
       if (this.heap_get_byte_at_offset(channel_address, 1) === 1) {
-        if (this.heap_get_byte_at_offset(channel_address, 4) !== 1){
-          this.heap_set_child(pipe_address, 0, this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
+        if (this.heap_get_byte_at_offset(channel_address, 4) !== 1) {
+          this.heap_set_child(
+            pipe_address,
+            0,
+            this.heap_allocate_pointer(this.heap_allocate_Int32(send_val))
+          )
           this.heap_set_byte_at_offset(channel_address, 4, 1)
           //console.log("SENT!")
           return null // sucessfully sent
@@ -1041,8 +1047,12 @@ export class HeapBuffer {
       return undefined // full pc change and wait
     }
     current_filled_level++
-    this.heap_set_child(pipe_address, (current_filled_level), this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
-    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level))
+    this.heap_set_child(
+      pipe_address,
+      current_filled_level,
+      this.heap_allocate_pointer(this.heap_allocate_Int32(send_val))
+    )
+    this.heap_set_byte_at_offset(channel_address, 4, current_filled_level)
     return null // successfully sent
   }
 
