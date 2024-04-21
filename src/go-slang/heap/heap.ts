@@ -303,6 +303,7 @@ export class HeapBuffer {
 
   private addressCheck(address: number) {
     if (address < 0 || address >= word_size << this.heap_pow) {
+      console.log(address)
       throw new MemOutOfBoundsError()
     }
   }
@@ -995,37 +996,43 @@ export class HeapBuffer {
     return channel_address
   }
 
-  public heap_recv_channel(channel_address: number): any {
+  public heap_recv_channel(channel_address: number):any {
+    //console.log("receving: ", channel_address)
+    const pipe_address = this.heap_get_byte_at_offset(channel_address, 2)
     if (this.heap_get_byte_at_offset(channel_address, 3) === 0) {
       // unbuffered channel
       if (this.heap_get_byte_at_offset(channel_address, 4) === 1) {
         // filled
         // reset lock and give
         this.heap_set_byte_at_offset(channel_address, 1, 0)
-        return this.getInt32(this.getPointerAddress(this.heap_get_child(channel_address, 1)))
+        this.heap_set_byte_at_offset(channel_address, 4, 0)
+        //console.log("RECEIVED")
+        return this.getInt32(this.getPointerAddress(this.heap_get_child(pipe_address, 0)))
       }
       this.heap_set_byte_at_offset(channel_address, 1, 1) // ready to receive
+      //console.log("READY")
       return undefined // ready up and pc change and wait
     }
     var current_filled_level = this.heap_get_byte_at_offset(channel_address, 4)
     if (current_filled_level === 0) {
       return undefined // block cos nothing to receive
     }
-    this.heap_set_byte_at_offset(channel_address, 4, current_filled_level - 1)
-    return this.getInt32(
-      this.getPointerAddress(this.heap_get_child(channel_address, current_filled_level))
-    )
+    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level-1))
+    return this.getInt32(this.getPointerAddress(this.heap_get_child(pipe_address, (current_filled_level))))
   }
-  public heap_send_channel(channel_address: number, send_val: number): any {
+  public heap_send_channel(channel_address: number, send_val: number):any {
+    //console.log("sending: ", channel_address, send_val)
+    const pipe_address = this.heap_get_byte_at_offset(channel_address, 2)
     if (this.heap_get_byte_at_offset(channel_address, 3) === 0) {
       if (this.heap_get_byte_at_offset(channel_address, 1) === 1) {
-        this.heap_set_child(
-          channel_address,
-          1,
-          this.heap_allocate_pointer(this.heap_allocate_Int32(send_val))
-        )
-        return null // sucessfully sent
+        if (this.heap_get_byte_at_offset(channel_address, 4) !== 1){
+          this.heap_set_child(pipe_address, 0, this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
+          this.heap_set_byte_at_offset(channel_address, 4, 1)
+          //console.log("SENT!")
+          return null // sucessfully sent
+        }
       }
+      //console.log("WAITING FOR READY UP!")
       return undefined // pc change and wait for receiver to ready up
     }
     var current_filled_level = this.heap_get_byte_at_offset(channel_address, 4)
@@ -1033,12 +1040,9 @@ export class HeapBuffer {
     if (current_filled_level === channel_buffer_size) {
       return undefined // full pc change and wait
     }
-    this.heap_set_child(
-      channel_address,
-      current_filled_level + 1,
-      this.heap_allocate_pointer(this.heap_allocate_Int32(send_val))
-    )
-    this.heap_set_byte_at_offset(channel_address, 4, current_filled_level + 1)
+    current_filled_level++
+    this.heap_set_child(pipe_address, (current_filled_level), this.heap_allocate_pointer(this.heap_allocate_Int32(send_val)))
+    this.heap_set_byte_at_offset(channel_address, 4, (current_filled_level))
     return null // successfully sent
   }
 

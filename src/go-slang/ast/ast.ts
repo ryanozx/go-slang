@@ -11,7 +11,7 @@ export function stringToAst(input: string): nodes.File {
 export function parseFile(file: any): nodes.File {
   let declNodes: nodes.DeclarationNode[] = []
 
-  console.log(file['Decls'].length)
+  //console.log(file['Decls'].length)
   for (var decl of file['Decls']) {
     declNodes.push(parseDecl(decl))
   }
