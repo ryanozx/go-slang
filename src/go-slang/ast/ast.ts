@@ -402,8 +402,10 @@ function parseBranchStmt(node: any): nodes.BranchStmt {
 
 function parseBlockStmt(node: any): nodes.BlockStmt {
   let lst: nodes.StatementNode[] = []
-  for (var stmt of node['List']) {
-    lst.push(parseStatement(stmt))
+  if (node['List'] !== null) {
+    for (var stmt of node['List']) {
+      lst.push(parseStatement(stmt))
+    }
   }
   return new nodes.BlockStmt(lst)
 }

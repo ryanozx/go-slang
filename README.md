@@ -1,6 +1,6 @@
-# js-slang
+# go-slang
 
-Open-source implementations of the programming language _Source_. Source is a series of small subsets of JavaScript, designed for teaching university-level programming courses for computer science majors, following Structure and Interpretation of Computer Programs, JavaScript Adaptation (<https://sourceacademy.org/sicpjs/>).
+Open-source implementations of a sublanguage of Go in TypeScript
 
 ## Table of Contents
 
@@ -26,11 +26,44 @@ Open-source implementations of the programming language _Source_. Source is a se
 To build,
 
 ```bash
-$ git clone --recurse-submodules https://github.com/source-academy/js-slang.git
-$ cd js-slang
+$ git clone --recurse-submodules https://github.com/ryanozx/go-slang
+$ cd go-slang
 $ yarn
 $ yarn build
 ```
+
+To use the sublanguage,
+1. Set up the backend parser server ([link to backend parser server](https://github.com/audd-ho/goslang-backend))
+2. Create a .env file in the root of the module. (Refer to .env.example). This .env file will contain the URL
+of the backend server
+3. If you are hosting the backend parser server on a different URL, modify the environment variable accordingly
+4. Once the server is set up, pass your code into parseCompileAndRunGo() in "src/go-slang/index.ts"
+
+Tests can be found at "src/go-slang/interpreter/__tests". To run them, execute "ts-node [test_file_name]" in the console.
+
+A brief description of each test, its purpose, and expected output (more detailed explanations can be found
+within the test files themselves):
+
+|Test | Purpose | Expected Output|
+|---|---|---|
+|channel_2routines_badorder.ts| Demonstrate send and receive blocking ability of unbuffered channels when they are done in the wrong order | VM does not terminate |
+|channel_2routines_goodorder.ts| Demonstrate send and receive not blocking in unbuffered channels when they are done in the correct order (receiver present before sender can send) | Prints 1, then 2 |
+| channel_buffered_block_receive.ts | Receiving from a buffered empty channel is blocking | No output printed, VM does not terminate |
+| channel_buffered_full_block.ts | Sending to a full buffered channel is a blocking operation | VM does not terminate as busy waiting occurs |
+| channel_buffered_full_noblock.ts | Sending to a buffered channel is non-blocking when the buffer is not full | VM terminates after sending 5 values (channel has capacity 5) |
+| channel_buffered_noblock_send.ts | Sending to a buffered channel does not require a receiver to be present i.e. does not block assuming non-full channel | VM terminates after sending 1 value |
+| channel_close_test.ts | After a channel is closed and all its values are read, it will return the default zero value for any further reads | VM prints 1, 3, 5, 0 (default zero value) and terminates |
+| channel_send_to_closed_channel.ts | Sending to a closed channel causes a panic | Error message printed when sending to a closed channel |
+| channel_unbuffered_block_receive.ts | Receiving from a closed unbuffered channel is a blocking operation | VM does not terminate |
+| channel_unbuffered_block_send.ts | Sending to an unbuffered channel without a receiver is a blocking operation | VM does not terminate |
+| channel2_routines3_block_wait.ts | Channels can be used to enforce execution order amongst goroutines, depending on sending/receiving availability | 232 is printed first, then 111 and 323 (order for the last 2 may not be fixed) |
+| gc_test.ts | Garbage collector executes when memory used is twice that at the end of the last GC cycle; tests that GC does free memory | Several lines of output indicating GC execution, as well as before and after memory use |
+| goroutine_test.ts | Demonstrates interleaving ability of goroutines due to scheduler | "Thread 1", "Thread 2",
+and "Main" should interleave each other in the output |
+| semaphore_test.ts | Semaphores can be used to protect critical sections, ensuring only one goroutine can execute the critical section at any time | Sequence of "1"s, "2"s, "3"s are printed disjointly as only one goroutine has access to the for loop at any time |
+| string_test.ts | Demonstrates ability to print and concatenate strings | Prints "abc", "def", "abcdef" (concatenation), and "abcabc" (reassignment) |
+| waitGroup_test.ts | Wait Groups can be used to synchronise Goroutines | Prints "f DONE" twice before printing "Main done" (main goroutine waits for child goroutines to finish execution first before printing) |
+
 
 This repository uses git submodules. To update existing repositories with a submodule,
 

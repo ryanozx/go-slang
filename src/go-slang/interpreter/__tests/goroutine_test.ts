@@ -1,7 +1,5 @@
-import { compile } from '../../compiler/compiler'
-import { parseFile } from '../../ast/ast'
-import { GoVirtualMachine } from '../go-vm'
-import { GoslangToAstJson } from '../../parser'
+import { parseCompileAndRunGo } from '../..'
+
 
 const goroutine_str = `
 package main
@@ -33,8 +31,4 @@ func main() {
 }
 `
 
-GoslangToAstJson(goroutine_str).then(res => {
-  const instrs = compile(parseFile(res))
-  const vm = new GoVirtualMachine(instrs, false)
-  vm.run()
-})
+parseCompileAndRunGo(goroutine_str)

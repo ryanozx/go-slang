@@ -163,13 +163,15 @@ export class HeapBuffer {
     // mark roots of each goroutine
     console.log('GC Executed - No. of goroutines: %d', this.grQueue.size)
     console.log('Curr used: %d', this.curr_used)
-    for (var thread of this.grQueue.goroutines) {
+    const grStartPos = this.grQueue.startPos
+    const grCap = this.grQueue.capacity
+    const grThreadCount = this.grQueue.size
+    for (let i = 0; i < grThreadCount; ++i) {
       // Assumption - running GC stops the world; this needs to be changed if it is no longer the case
-      if (thread !== undefined) {
-        thread.OS.forEach(addr => this.mark(addr, true))
-        this.mark(thread.ENV as number, true)
-        thread.RTS.forEach(addr => this.mark(addr, true))
-      }
+      const thread = this.grQueue.goroutines[(grStartPos + i) % grCap]
+      thread.OS.forEach(addr => this.mark(addr, true))
+      this.mark(thread.ENV as number, true)
+      thread.RTS.forEach(addr => this.mark(addr, true))
     }
     let addr = 0
     const heapsize = 1 << this.heap_pow
@@ -818,9 +820,9 @@ export class HeapBuffer {
     const addr = this.allocate(WAITGROUP_TAG, 1)
     // lock available (set to 1 to acquire)
     this.heap_set_byte_at_offset(addr, 1, 0)
-    const otherBits = this.heap_get(addr) & ((1 << 64) - 1 - (((1 << 24) - 1) << 24))
+    this.heap_set_2_bytes_at_offset(addr, 2, 0)
+    this.heap_set_byte_at_offset(addr, 4, 0)
     // set counter to 0
-    this.heap_set(addr, otherBits)
     return addr
   }
 
@@ -829,7 +831,7 @@ export class HeapBuffer {
       const tag = this.heap_get_tag(address)
       throw new BadTagError(WAITGROUP_TAG, tag)
     }
-    const val = (this.heap_get(address) & (((1 << 24) - 1) << 24)) >> 24
+    const val = this.heap_get_4_bytes_at_offset(address, 1) & ((1 << 24) - 1)
     return val
   }
 
@@ -841,13 +843,12 @@ export class HeapBuffer {
       return false // failed to acquire lock, blocked
     }
     const currVal = this.getWaitgroupCounter(address)
-    if (val < 0 || currVal + val >= 1 >> 24) {
+    if (val < 0 || (currVal + val >= (1 << 24))) {
       throw new WaitGroupCounterOverflowError() // need to ensure that new counter can be written in 3 bytes
     }
     const newVal = currVal + val
-    const otherBits = this.heap_get(address) & ((1 << 64) - 1 - (((1 << 24) - 1) << 24))
-    this.heap_set(address, (otherBits + newVal) << 24)
-    this.heap_set_byte_at_offset(address, 1, 0) // release lock
+    // sets counter and releases lock at the same time
+    this.heap_set_4_bytes_at_offset(address, 1, newVal)
     return true
   }
 
@@ -862,9 +863,8 @@ export class HeapBuffer {
     if (currVal <= 0) {
       throw new NegativeWaitGroupCounterError() // counter can never be negative
     }
-    const otherBits = this.heap_get(address) & ((1 << 64) - 1 - (((1 << 24) - 1) << 24))
-    this.heap_set(address, (otherBits + (currVal - 1)) << 24)
-    this.heap_set_byte_at_offset(address, 1, 0) // release lock
+    // sets counter and releases lock at the same time
+    this.heap_set_4_bytes_at_offset(address, 1, currVal - 1)
     return true
   }
 

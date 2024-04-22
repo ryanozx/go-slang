@@ -1,10 +1,10 @@
-import { parseFile } from '../../ast/ast'
-import { compile, debugCompile } from '../../compiler/compiler'
-import { GoslangToAstJson } from '../../parser'
-import { GoVirtualMachine } from '../go-vm'
+import { parseCompileAndRunGo } from '../..'
+
 
 /*
   Test: Demonstrate ability of language to store and print strings, as well as the ability to concatenate strings
+
+  Expected output: "abc", "def", "abcdef", "abcabc"
 */
 
 const string_test_str = `
@@ -21,8 +21,4 @@ func main() {
   print(x) // should print "abcabc" to console
 }`
 
-GoslangToAstJson(string_test_str).then(res => {
-  const instrs = compile(parseFile(res))
-  const vm = new GoVirtualMachine(instrs, false)
-  vm.run()
-})
+parseCompileAndRunGo(string_test_str)
