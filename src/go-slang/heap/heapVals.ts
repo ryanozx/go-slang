@@ -17,7 +17,10 @@ export enum ValType {
   Undefined,
   Unassigned,
   Null,
-  Builtin
+  Builtin,
+  Semaphore,
+  WaitGroup,
+  Channel
 }
 
 export const ValTypeToString = Object.keys(ValType)

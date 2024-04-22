@@ -86,29 +86,28 @@ export class GoVirtualMachine {
             const un_op_type = (inst as Inst.UnOpInstruction).op
             if (un_op_type === Token.token.ARROW) {
               const receving_channel_address = unxAddr
+              // console.log("Requesting from %d", unxAddr)
               //console.log(currRoutine.id, "receiving")
               const received = mem.heap_recv_channel(receving_channel_address)
               if (received !== undefined) {
                 OS.push(received)
-                step += TIME_QUANTUM
-                //console.log("RECEIVED")
                 //return
                 //currRoutine.PC++
               } else {
                 OS.push(receving_channel_address)
-                currRoutine.PC--
                 currRoutine.blocked = true
               }
-              break
-            }
-            const unop = unop_microcode.get(un_op_type)
-            if (unop !== undefined) {
-              const res = unop(mem.addrToVal(unxAddr))
-              OS.push(mem.valToAddr(res))
             } else {
-              throw new Error('Unary operation not found!')
+              const unop = unop_microcode.get(un_op_type)
+              if (unop !== undefined) {
+                const res = unop(mem.addrToVal(unxAddr))
+                OS.push(mem.valToAddr(res))
+              } else {
+                throw new Error('Unary operation not found!')
+              }
             }
             break
+
           case Inst.InstType.BINOP:
             const binyAddr = OS.pop()
             if (binyAddr === undefined) {
@@ -174,10 +173,19 @@ export class GoVirtualMachine {
               let builtinCallArgs: HeapVal[] = []
               callArgs.forEach(argAddr => builtinCallArgs.push(mem.addrToVal(argAddr)))
               builtinCallArgs = builtinCallArgs.reverse()
-              const builtinRes = builtin_func[builtinId].func(...builtinCallArgs)
-              if (builtinRes.type !== ValType.Undefined) {
-                // if ValType undefined, builtin function does not produce any values
-                OS.push(mem.valToAddr(builtinRes))
+              // pass in currRoutine, so that builtin functions can access goroutine properties
+              const builtinRes = builtin_func[builtinId].func(currRoutine, ...builtinCallArgs)
+              if (builtinRes.needRepeat) {
+                // CALL instruction will be executed next cycle, ensure the closure address and the argument values are in operand stack
+                OS.push(funcAddr)
+                for (let i = callArgs.length - 1; i >= 0; --i) {
+                  // args must be pushed in reverse of the order they were popped in
+                  OS.push(callArgs[i])
+                }
+              } else {
+                for (var res of builtinRes.results) {
+                  OS.push(mem.valToAddr(res))
+                }
               }
             } else {
               const frameSize = mem.heap_get_Closure_arity(funcAddr)
@@ -284,25 +292,24 @@ export class GoVirtualMachine {
             const declared_channel_address = mem.heap_allocate_channel(
               ChannelDeclareInst.BufferSize
             )
-            //console.log(declared_channel_address)
             OS.push(declared_channel_address) // no type yet...
             break
           case Inst.InstType.SEND:
             //console.log(currRoutine.id, "sending")
             //const ChanSendInst: Inst.SendInstruction = (inst as Inst.SendInstruction)
-            const sending_val = Number(OS.pop())
-            const send_channel_address = Number(OS.pop())
-            if (mem.heap_send_channel(send_channel_address, sending_val as number) === null) {
+
+            const sending_val = OS.pop()
+            const send_channel_address = OS.pop()
+            if (sending_val === undefined || send_channel_address === undefined) {
+              throw new EmptyOsError()
+            }
+            if (!mem.heap_send_channel(send_channel_address, sending_val)) {
               //currRoutine.PC++
               //console.log("SENTED")
               //return
-              currRoutine.terminate = true
-            } else {
               OS.push(send_channel_address)
               OS.push(sending_val)
-              currRoutine.PC--
               currRoutine.blocked = true
-              //console.log(currRoutine.PC)
             }
             break
           case Inst.InstType.CHANU:
@@ -319,6 +326,9 @@ export class GoVirtualMachine {
             break
         }
         ++step
+        if (currRoutine.blocked) {
+          --currRoutine.PC // rollback increment, retry instruction next time
+        }
       }
       mem.grQueue.pop()
       if (!currRoutine.terminate) {

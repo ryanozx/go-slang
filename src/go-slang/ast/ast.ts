@@ -510,7 +510,6 @@ function parseRangeStmt(node: any): nodes.RangeStmt {
 
 function parseDecl(decl: any): nodes.DeclarationNode {
   const type: string = decl['NodeType']
-  console.log(decl)
   switch (type) {
     case 'GenDecl':
       return parseGenDecl(decl)

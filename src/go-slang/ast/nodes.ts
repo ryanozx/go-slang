@@ -444,10 +444,10 @@ export class FuncType implements ExprNode {
   }
 
   numResults(): number {
-    if (this.Params === undefined) {
+    if (this.Results === undefined) {
       return 0
     }
-    return this.Params.NumFields()
+    return this.Results.NumFields()
   }
 
   valuesProduced(): number {

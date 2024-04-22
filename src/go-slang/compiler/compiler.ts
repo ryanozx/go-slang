@@ -127,7 +127,10 @@ function compileLiteral(node: nodes.BasicLit, _: CompileEnvironment) {
       instrs[lidx++] = new Instruction.BasicLitInstruction(tag, Number(node.Value))
       return
     case (Token.token.CHAR, Token.token.STRING):
-      instrs[lidx++] = new Instruction.BasicLitInstruction(tag, node.Value)
+      instrs[lidx++] = new Instruction.BasicLitInstruction(
+        tag,
+        node.Value.substring(1, node.Value.length - 1)
+      )
       return
     case Token.token.FLOAT:
       throw new Error('float unsupported')
@@ -172,30 +175,6 @@ function compileBinaryOp(node: nodes.BinaryExpr, env: CompileEnvironment) {
       compileNode(node.Y, env)
       gotoInst.setGotoDest(lidx)
       break
-    case (Token.token.ADD_ASSIGN,
-    Token.token.SUB_ASSIGN,
-    Token.token.MUL_ASSIGN,
-    Token.token.QUO_ASSIGN,
-    Token.token.REM_ASSIGN,
-    Token.token.AND_ASSIGN,
-    Token.token.OR_ASSIGN,
-    Token.token.XOR_ASSIGN,
-    Token.token.SHL_ASSIGN,
-    Token.token.SHR_ASSIGN,
-    Token.token.AND_NOT_ASSIGN):
-      compileNode(node.X, env)
-      compileNode(node.Y, env)
-      const newOp = Token.BinOpAssignMatch.get(op)
-      if (newOp !== undefined) {
-        // to satisfy TypeScript type guards
-        instrs[lidx++] = new Instruction.BinOpInstruction(newOp)
-      }
-      // assumption: node.X is an Ident (change when IndexExpr introduced)
-      instrs[lidx++] = new Instruction.AssignInstruction(
-        env.compile_time_environment_position((node.X as nodes.Ident).Name)
-      )
-      break
-
     default:
       compileNode(node.X, env)
       compileNode(node.Y, env)
@@ -295,6 +274,32 @@ const IGNORE_IDENT = '_'
 function compileAssign(node: nodes.AssignStmt, env: CompileEnvironment) {
   // TODO: Use type checker to ensure correct number of arguments on each side + type matches
   // type checker will also ensure that we do not assign to constants
+  switch (node.Tok) {
+    case Token.token.ADD_ASSIGN:
+    case Token.token.SUB_ASSIGN:
+    case Token.token.MUL_ASSIGN:
+    case Token.token.QUO_ASSIGN:
+    case Token.token.REM_ASSIGN:
+    case Token.token.AND_ASSIGN:
+    case Token.token.OR_ASSIGN:
+    case Token.token.XOR_ASSIGN:
+    case Token.token.SHL_ASSIGN:
+    case Token.token.SHR_ASSIGN:
+    case Token.token.AND_NOT_ASSIGN:
+      // for these expressions, there is only one value on either side
+      compileNode(node.LeftHandSide[0], env)
+      compileNode(node.RightHandSide[0], env)
+      const newOp = Token.BinOpAssignMatch.get(node.Tok)
+      if (newOp !== undefined) {
+        // to satisfy TypeScript type guards
+        instrs[lidx++] = new Instruction.BinOpInstruction(newOp)
+      }
+      // assumption: node.X is an Ident (change when IndexExpr introduced)
+      instrs[lidx++] = new Instruction.AssignInstruction(
+        env.compile_time_environment_position((node.LeftHandSide[0] as nodes.Ident).Name)
+      )
+      break
+  }
 
   let lhs_pos: EnvironmentPos[] = []
   for (var lhs of node.LeftHandSide) {

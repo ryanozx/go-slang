@@ -8,6 +8,7 @@ export class GoRoutine {
   blocked: boolean
   terminate: boolean
   id: number
+  wasBlocked: boolean
 
   constructor(env: number, id: number, pc?: number) {
     this.OS = []
@@ -17,6 +18,7 @@ export class GoRoutine {
     this.blocked = false
     this.terminate = false
     this.id = id
+    this.wasBlocked = false
   }
 }
 

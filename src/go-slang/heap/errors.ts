@@ -52,6 +52,12 @@ export class InvalidSemaphoreValueError extends Error {
   }
 }
 
+export class InvalidChannelValueError extends Error {
+  constructor(val: number) {
+    super(`Channel initialised with size ${val}, must be between [1, 65536] inclusive`)
+  }
+}
+
 export class InvalidValTypeError extends Error {
   constructor() {
     super('Value type could not be determined')
