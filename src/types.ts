@@ -86,6 +86,7 @@ export enum Chapter {
   FULL_SCHEME = -13,
   FULL_C = -14,
   FULL_JAVA = -15,
+  GO_1 = -16,
   LIBRARY_PARSER = 100
 }
 

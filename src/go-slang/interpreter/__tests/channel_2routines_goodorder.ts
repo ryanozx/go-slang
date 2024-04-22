@@ -1,10 +1,15 @@
 /*
-Test Case:
-After a channel is closed, receivers will read whatever remaining values are in the channel.
-If there are no more values in the channel, receiver should receive default 0 value
+Test Case: Order of sends and receive are correct
+
+For an unbuffered channel,
+- sends are blocked if there are no receivers
+- receives are blocked if there is no sender (i.e. no values sent)
 
 Expected output:
-1, 3, 5, 0 (default value) printed to screen
+- prints 1, then 2, then VM terminates
+
+Explanation:
+chan1 sends and receives first, then chan2 sends and receives
 */
 import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
@@ -17,22 +22,19 @@ let gslang_code = `
 package main
 
 func main() {
-  chan1 := make(chan int, 5)
-
+  chan1 := make(chan int)
+  //chan1 := make(chan int, 10)
+  chan2 := make(chan int)
+  go foo(chan1, chan2);
   chan1 <- 1
-  chan1 <- 3
-  chan1 <- 5
-
-  close(chan1)
-
-  print(<-chan1) // prints 1
-  print(<-chan1) // prints 3
-  print(<-chan1) // prints 5
-  print(<-chan1) // prints 0 (default value)
-
+  chan2 <- 2
+}
+func foo(chan1 chan int, chan2 chan int) {
+  print(<-chan1)
+  print(<-chan2)
+  //<-chan2
 }
 `
-
 GoslangToAstJson(gslang_code).then((result: any) => {
   const parsed_ast: nodes.File = parseFile(result)
   const compiled_parsed_ast = compile(parsed_ast)

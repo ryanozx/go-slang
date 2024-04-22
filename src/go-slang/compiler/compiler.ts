@@ -1,4 +1,3 @@
-import { error } from '../../stepper/lib'
 import { nodeType } from '../ast/nodeTypes'
 import * as nodes from '../ast/nodes'
 import {
@@ -112,8 +111,8 @@ function compileNode(node: nodes.GoNode, env: CompileEnvironment, doNotExtendEnv
       compileIncDecStmt(node as nodes.IncDecStmt, env)
       break
     //case nodeType.CHAN:
-      //compileChannel
-      //break
+    //compileChannel
+    //break
     case nodeType.ILLEGAL:
       throw new IllegalInstructionError()
     default:
@@ -127,8 +126,11 @@ function compileLiteral(node: nodes.BasicLit, _: CompileEnvironment) {
     case Token.token.INT:
       instrs[lidx++] = new Instruction.BasicLitInstruction(tag, Number(node.Value))
       return
-    case Token.token.CHAR, Token.token.STRING:
-      instrs[lidx++] = new Instruction.BasicLitInstruction(tag, node.Value)
+    case (Token.token.CHAR, Token.token.STRING):
+      instrs[lidx++] = new Instruction.BasicLitInstruction(
+        tag,
+        node.Value.substring(1, node.Value.length - 1)
+      )
       return
     case Token.token.FLOAT:
       throw new Error('float unsupported')
@@ -173,30 +175,6 @@ function compileBinaryOp(node: nodes.BinaryExpr, env: CompileEnvironment) {
       compileNode(node.Y, env)
       gotoInst.setGotoDest(lidx)
       break
-    case Token.token.ADD_ASSIGN ,
-      Token.token.SUB_ASSIGN ,
-      Token.token.MUL_ASSIGN ,
-      Token.token.QUO_ASSIGN ,
-      Token.token.REM_ASSIGN ,
-      Token.token.AND_ASSIGN ,
-      Token.token.OR_ASSIGN ,
-      Token.token.XOR_ASSIGN ,
-      Token.token.SHL_ASSIGN ,
-      Token.token.SHR_ASSIGN ,
-      Token.token.AND_NOT_ASSIGN:
-      compileNode(node.X, env)
-      compileNode(node.Y, env)
-      const newOp = Token.BinOpAssignMatch.get(op)
-      if (newOp !== undefined) {
-        // to satisfy TypeScript type guards
-        instrs[lidx++] = new Instruction.BinOpInstruction(newOp)
-      }
-      // assumption: node.X is an Ident (change when IndexExpr introduced)
-      instrs[lidx++] = new Instruction.AssignInstruction(
-        env.compile_time_environment_position((node.X as nodes.Ident).Name)
-      )
-      break
-
     default:
       compileNode(node.X, env)
       compileNode(node.Y, env)
@@ -208,11 +186,9 @@ function compileIf(node: nodes.IfStmt, env: CompileEnvironment) {
   let initIdents: EnvironmentSymbol[] = []
   if (node.Init !== undefined) {
     initIdents = scanOutDecls(node.Init)
-    if (initIdents.length !== 0) {
-      // initialisation statement may declare new variables, these should
-      // exist only within the implicit scope of the If block
-      instrs[lidx++] = new Instruction.EnterScopeInstruction(initIdents.length)
-    }
+    // initialisation statement may declare new variables, these should
+    // exist only within the implicit scope of the If block
+    instrs[lidx++] = new Instruction.EnterScopeInstruction(initIdents.length)
     compileNode(node.Init, env)
   }
   compileNode(node.Cond, env)
@@ -274,13 +250,13 @@ function compileFor(node: nodes.ForStmt, env: CompileEnvironment) {
 
 // Future TODO: Function calls support the spread operator - consider integration
 function compileCall(node: nodes.CallExpr, env: CompileEnvironment) {
-  if ((node.Func as nodes.Ident)["Name"] === "close") {
+  if ((node.Func as nodes.Ident)['Name'] === 'close') {
     if (node.Args !== undefined) {
       compileNode(node.Args[0], env)
       instrs[lidx++] = new Instruction.CloseChannel()
       return
     }
-    throw new Error("Close must have only 1 argument!!")
+    throw new Error('Close must have only 1 argument!!')
   }
   compileNode(node.Func, env)
   let arity = 0
@@ -298,6 +274,32 @@ const IGNORE_IDENT = '_'
 function compileAssign(node: nodes.AssignStmt, env: CompileEnvironment) {
   // TODO: Use type checker to ensure correct number of arguments on each side + type matches
   // type checker will also ensure that we do not assign to constants
+  switch (node.Tok) {
+    case Token.token.ADD_ASSIGN:
+    case Token.token.SUB_ASSIGN:
+    case Token.token.MUL_ASSIGN:
+    case Token.token.QUO_ASSIGN:
+    case Token.token.REM_ASSIGN:
+    case Token.token.AND_ASSIGN:
+    case Token.token.OR_ASSIGN:
+    case Token.token.XOR_ASSIGN:
+    case Token.token.SHL_ASSIGN:
+    case Token.token.SHR_ASSIGN:
+    case Token.token.AND_NOT_ASSIGN:
+      // for these expressions, there is only one value on either side
+      compileNode(node.LeftHandSide[0], env)
+      compileNode(node.RightHandSide[0], env)
+      const newOp = Token.BinOpAssignMatch.get(node.Tok)
+      if (newOp !== undefined) {
+        // to satisfy TypeScript type guards
+        instrs[lidx++] = new Instruction.BinOpInstruction(newOp)
+      }
+      // assumption: node.X is an Ident (change when IndexExpr introduced)
+      instrs[lidx++] = new Instruction.AssignInstruction(
+        env.compile_time_environment_position((node.LeftHandSide[0] as nodes.Ident).Name)
+      )
+      break
+  }
 
   let lhs_pos: EnvironmentPos[] = []
   for (var lhs of node.LeftHandSide) {
@@ -375,30 +377,43 @@ function compileBlock(node: nodes.BlockStmt, env: CompileEnvironment, doNotExten
     const stmtType = stmt.getType()
     if (stmtType === nodeType.ASSIGN) {
       const assignmentStmt: nodes.AssignStmt = stmt as nodes.AssignStmt
-      if ((assignmentStmt).getTokType() === Token.token.DEFINE) {
+      if (assignmentStmt.getTokType() === Token.token.DEFINE) {
         // declaration + assignment stmt
-        if ((((assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func) as nodes.Ident).Name === "make") {
+        if (
+          assignmentStmt.RightHandSide[0].getType() === nodeType.CALL &&
+          (assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func.getType() === nodeType.IDENT &&
+          ((assignmentStmt.RightHandSide[0] as nodes.CallExpr).Func as nodes.Ident).Name === 'make'
+        ) {
           // channel declaration/construction (could be slice too technically)
-          const channelParams: nodes.ExprNode[] | undefined = (assignmentStmt.RightHandSide[0] as nodes.CallExpr).Args
+          const channelParams: nodes.ExprNode[] | undefined = (
+            assignmentStmt.RightHandSide[0] as nodes.CallExpr
+          ).Args
           if (channelParams === undefined) {
-            throw new Error("Channel Parameters not declared properly")
+            throw new Error('Channel Parameters not declared properly')
           }
           const ChannelPassType: string = (channelParams[0] as nodes.ChanNode).PassType
           var ChannelBufferSize: number | undefined = undefined
           // for direction if got time
           //(channelParams[0] as nodes.ChanNode).Dir
-          if (channelParams[1] !== undefined){
-            if ("Value" in channelParams[1]) {
-              ChannelBufferSize = Number(channelParams[1]["Value"])
+          if (channelParams[1] !== undefined) {
+            if ('Value' in channelParams[1]) {
+              ChannelBufferSize = Number(channelParams[1]['Value'])
               if (isNaN(ChannelBufferSize)) {
-                throw new Error("Invalid Channel Buffer Size")
+                throw new Error('Invalid Channel Buffer Size')
               }
             }
           }
-          instrs[lidx++] = new Instruction.ChannelDeclarationInstruction(ChannelPassType, ChannelBufferSize)
-          instrs[lidx++] = new Instruction.AssignInstruction(env.compile_time_environment_position((assignmentStmt.LeftHandSide[0] as nodes.Ident).Name))
+          instrs[lidx++] = new Instruction.ChannelDeclarationInstruction(
+            ChannelPassType,
+            ChannelBufferSize
+          )
+          instrs[lidx++] = new Instruction.AssignInstruction(
+            env.compile_time_environment_position(
+              (assignmentStmt.LeftHandSide[0] as nodes.Ident).Name
+            )
+          )
           continue
-          }
+        }
       }
     }
     compileNode(stmt, newEnv)
@@ -514,7 +529,7 @@ function scanOutDecls(node: nodes.StatementNode): EnvironmentSymbol[] {
     case nodeType.ASSIGN:
       const assignStmt = node as nodes.AssignStmt
       if (assignStmt.getTokType() === Token.token.DEFINE) {
-        let decls = []
+        let decls: EnvironmentSymbol[] = []
         for (var lhs of assignStmt.LeftHandSide) {
           if (lhs.getType() === nodeType.IDENT) {
             decls.push(new EnvironmentSymbol((lhs as nodes.Ident).Name))

@@ -114,6 +114,10 @@ export class BinOpInstruction implements Instruction {
 export class JumpOnFalseInstruction implements Instruction {
   dest: number
 
+  constructor() {
+    this.dest = -1
+  }
+
   setJumpDest(dest: number) {
     this.dest = dest
   }
@@ -129,6 +133,10 @@ export class JumpOnFalseInstruction implements Instruction {
 
 export class GotoInstruction implements Instruction {
   dest: number
+
+  constructor() {
+    this.dest = -1
+  }
 
   setGotoDest(dest: number) {
     this.dest = dest
@@ -344,15 +352,14 @@ export class CloseChannel implements Instruction {
   }
 }
 
-
 // unused
 export class ChannelUseInstruction implements Instruction {
   //BufferSize: number | undefined
-  ChannelDirection:string // "BOTH"( mainly for passing into function as params!! ), "RECV", "SEND"
+  ChannelDirection: string // "BOTH"( mainly for passing into function as params!! ), "RECV", "SEND"
   // buffer-ready(unbuffered) or buffer-full(buffered) implemented in heap
   // no fixed direction for now!
 
-  constructor(channelDirection:string) {
+  constructor(channelDirection: string) {
     this.ChannelDirection = channelDirection
   }
 

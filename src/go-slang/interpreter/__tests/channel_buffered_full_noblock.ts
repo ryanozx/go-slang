@@ -1,28 +1,34 @@
 /*
 Test Case:
-block on receive on a empty buffered channel/unbuffered channel
+VM terminates as there is no sending to a full channel
 
-(Buffered and Unbuffered channels by commenting out the different channel types)
+Expected output:
+Nothing printed, but VM should terminate
 */
 import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
 import * as nodes from '../../ast/nodes'
 import { compile } from '../../compiler/compiler'
-import { GoVirtualMachine } from "../go-vm"
+import { GoVirtualMachine } from '../go-vm'
 
 // Takes goslang string and converts it to AST in JSON format
 let gslang_code = `
 package main
 
 func main() {
-  chan1 := make(chan int)
-  //chan1 := make(chan int, 10)
-  <-chan1
+  chan1 := make(chan int, 5)
+  chan1 <- 1
+  chan1 <- 2
+  chan1 <- 3
+  chan1 <- 4
+  chan1 <- 5
+  //chan1 <- 6 // should block if this is not commented out
 }
 `
+
 GoslangToAstJson(gslang_code).then((result: any) => {
   const parsed_ast: nodes.File = parseFile(result)
   const compiled_parsed_ast = compile(parsed_ast)
-  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
+  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, false)
   vm.run()
 })

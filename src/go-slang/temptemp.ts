@@ -1,17 +1,17 @@
 import { GoslangToAstJson } from './parser'
 import { parseFile } from './ast/ast'
 import * as nodes from './ast/nodes'
-import { compile } from './compiler/compiler'
+import { compile, debugCompile } from './compiler/compiler'
 import { GoVirtualMachine } from './interpreter/go-vm'
 
 //import { writeFile } from "fs";
 
 // Takes goslang string and converts it to AST in JSON format
-let gslang_code = `
-package main
-//import (
-//    "fmt"
-//)
+let gslang_code = `package main
+
+import (
+    "fmt"
+)
 
 func GetFoo(cc chan int, gg chan int) {
   gg <- 100
@@ -19,15 +19,7 @@ func GetFoo(cc chan int, gg chan int) {
   abc = <- gg
   var aaa = 10
   var bbb = 10
-  //hello := make(chan int, 10)
-  //hello <- 123
-  //abc = <-hello
-  //<-hello
-  //bye := make(chan int)
-  //bye <- 123
-  //test := foo()
-  //fmt.Println(test)
-  <-cc
+  a := <-cc
 }
 func main() {
   gogo := make(chan int)
@@ -44,6 +36,10 @@ func foo(cc chan int, gg chan int) int {
   var ccc = 111;
   var ddd = 11111;
   return 0
+}
+
+func main() {
+  GetFoo()
 }
 `
 
@@ -481,9 +477,6 @@ GoslangToAstJson(gslang_code).then(result => {
   DoneInstruction {}
 ]
 */
-
-
-
 
 /*
 [

@@ -1,10 +1,9 @@
 /*
 Test Case:
-After a channel is closed, receivers will read whatever remaining values are in the channel.
-If there are no more values in the channel, receiver should receive default 0 value
+Send on a unbuffered channel blocks if there is no receiver
 
 Expected output:
-1, 3, 5, 0 (default value) printed to screen
+VM does not terminate and nothing is printed to the screen
 */
 import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
@@ -17,22 +16,11 @@ let gslang_code = `
 package main
 
 func main() {
-  chan1 := make(chan int, 5)
-
+  chan1 := make(chan int)
   chan1 <- 1
-  chan1 <- 3
-  chan1 <- 5
-
-  close(chan1)
-
-  print(<-chan1) // prints 1
-  print(<-chan1) // prints 3
-  print(<-chan1) // prints 5
-  print(<-chan1) // prints 0 (default value)
-
+  print("Terminate")
 }
 `
-
 GoslangToAstJson(gslang_code).then((result: any) => {
   const parsed_ast: nodes.File = parseFile(result)
   const compiled_parsed_ast = compile(parsed_ast)

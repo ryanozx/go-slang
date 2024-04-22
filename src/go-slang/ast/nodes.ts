@@ -444,10 +444,10 @@ export class FuncType implements ExprNode {
   }
 
   numResults(): number {
-    if (this.Params === undefined) {
+    if (this.Results === undefined) {
       return 0
     }
-    return this.Params.NumFields()
+    return this.Results.NumFields()
   }
 
   valuesProduced(): number {
@@ -979,7 +979,7 @@ export class File implements GoNode {
 export class ChanNode implements ExprNode {
   Dir: string
   PassType: string
-  
+
   getType(): nodeType {
     return nodeType.CHAN
   }
@@ -988,10 +988,7 @@ export class ChanNode implements ExprNode {
     return 0
   }
 
-  constructor(
-    dir: string,
-    passType: string
-  ) {
+  constructor(dir: string, passType: string) {
     this.Dir = dir
     this.PassType = passType
   }
