@@ -172,6 +172,7 @@ export class GoVirtualMachine {
               const builtinId = mem.heap_get_builtin_id(funcAddr)
               let builtinCallArgs: HeapVal[] = []
               callArgs.forEach(argAddr => builtinCallArgs.push(mem.addrToVal(argAddr)))
+
               builtinCallArgs = builtinCallArgs.reverse()
               // pass in currRoutine, so that builtin functions can access goroutine properties
               const builtinRes = builtin_func[builtinId].func(currRoutine, ...builtinCallArgs)
@@ -330,6 +331,7 @@ export class GoVirtualMachine {
           --currRoutine.PC // rollback increment, retry instruction next time
         }
       }
+      // gc should not trigger here since no allocation occurs
       mem.grQueue.pop()
       if (!currRoutine.terminate) {
         mem.grQueue.push(currRoutine)

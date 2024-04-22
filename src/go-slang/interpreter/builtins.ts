@@ -63,19 +63,19 @@ export function generateBuiltins(mem: HeapBuffer) {
           throw new BadBuiltinArgValError('wait', x[0].val)
         }
         // lock acquired, no blocks
-        return new BuiltinFuncOutput(false, [])
+        return new BuiltinFuncOutput(false, [new HeapVal(0, ValType.Undefined)])
       }
     },
     signal: {
       func: (_: GoRoutine, ...x: HeapVal[]): BuiltinFuncOutput => {
         if (x.length == 0) {
-          throw new MissingBuiltinArgError('wait', 'semaphore')
+          throw new MissingBuiltinArgError('signal', 'semaphore')
         } else if (x[0].type === ValType.Semaphore) {
           mem.semaphoreSignal(x[0].val as number)
         } else {
-          throw new BadBuiltinArgValError('wait', x[0].val)
+          throw new BadBuiltinArgValError('signal', x[0].val)
         }
-        return new BuiltinFuncOutput(false, [])
+        return new BuiltinFuncOutput(false, [new HeapVal(0, ValType.Undefined)])
       }
     },
     makeWg: {
@@ -87,38 +87,37 @@ export function generateBuiltins(mem: HeapBuffer) {
     incrementWg: {
       func: (currRoutine: GoRoutine, ...x: HeapVal[]): BuiltinFuncOutput => {
         if (x.length < 2) {
-          throw new MissingBuiltinArgError('wait', 'WaitGroup, increment number')
+          throw new MissingBuiltinArgError('incrementWg', 'WaitGroup, increment number')
         } else if (x[0].type === ValType.WaitGroup && x[1].type === ValType.Int32) {
           const incStatus = mem.incrementWaitGroup(x[0].val as number, x[1].val as number)
           if (!incStatus) {
             currRoutine.blocked = true
-            return new BuiltinFuncOutput(true, [])
+            return new BuiltinFuncOutput(true, [new HeapVal(0, ValType.Undefined)])
           }
           return new BuiltinFuncOutput(false, [])
         } else {
-          throw new BadBuiltinArgValError('wait', x[0].val)
+          throw new BadBuiltinArgValError('incrementWg', x[0].val)
         }
       }
     },
     decrementWg: {
       func: (currRoutine: GoRoutine, ...x: HeapVal[]): BuiltinFuncOutput => {
         if (x.length == 0) {
-          throw new MissingBuiltinArgError('wait', 'WaitGroup, increment number')
+          throw new MissingBuiltinArgError('decrementWg', 'WaitGroup')
         } else if (x[0].type === ValType.WaitGroup) {
           if (!currRoutine.wasBlocked) {
             // first time executing statement
             const isDecrease = mem.decrementWaitGroup(x[0].val as number)
-            if (!isDecrease) {
-              currRoutine.blocked = true
+            currRoutine.blocked = true
+            if (isDecrease) {
               currRoutine.wasBlocked = true // when we execute this instruction again next time, do not decrement the conuter again
-              return new BuiltinFuncOutput(true, [])
             }
-            return new BuiltinFuncOutput(false, [])
+            return new BuiltinFuncOutput(true, [])
           } else {
             const canLeave = mem.isWaitGroupCounterZero(x[0].val as number)
             if (canLeave) {
               currRoutine.wasBlocked = false // do not execute this instruction again next cycle
-              return new BuiltinFuncOutput(false, [])
+              return new BuiltinFuncOutput(false, [new HeapVal(0, ValType.Undefined)])
             }
             // counter is still not zero, continue blocking
             currRoutine.wasBlocked = true
@@ -126,7 +125,7 @@ export function generateBuiltins(mem: HeapBuffer) {
             return new BuiltinFuncOutput(true, [])
           }
         } else {
-          throw new BadBuiltinArgValError('wait', x[0].val)
+          throw new BadBuiltinArgValError('decrementWg', x[0].val)
         }
       }
     }
@@ -134,4 +133,4 @@ export function generateBuiltins(mem: HeapBuffer) {
   return Object.values(builtins)
 }
 
-export const builtin_keywords = ['make', 'print', 'makeSemaphore']
+export const builtin_keywords = ['make', 'print', 'makeSemaphore', 'wait', 'signal', 'makeWg', 'incrementWg', 'decrementWg']

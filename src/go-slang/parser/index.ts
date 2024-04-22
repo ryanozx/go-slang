@@ -1,5 +1,9 @@
+import * as dotenv from 'dotenv'
+
+dotenv.config({path: __dirname + "/../../../.env"})
+
 export async function GoslangToAstJson(goslang_code: string): Promise<JSON> {
-  return fetch('http://localhost:8080/go-parse', {
+  return fetch(process.env.BACKEND_SERVER_URL + '/go-parse', {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json'
