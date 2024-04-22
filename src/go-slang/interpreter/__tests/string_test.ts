@@ -3,6 +3,10 @@ import { compile, debugCompile } from '../../compiler/compiler'
 import { GoslangToAstJson } from '../../parser'
 import { GoVirtualMachine } from '../go-vm'
 
+/*
+  Test: Demonstrate ability of language to store and print strings, as well as the ability to concatenate strings
+*/
+
 const string_test_str = `
 package main
 
@@ -10,13 +14,15 @@ import "fmt"
 
 func main() {
   x, y := "abc", "def"
-  print(x + y)
+  print(x) // should print "abc"
+  print(y) // should print "def"
+  print(x + y) // should print "abcdef" to console
+  x += x
+  print(x) // should print "abcabc" to console
 }`
 
 GoslangToAstJson(string_test_str).then(res => {
-  console.log(res)
   const instrs = compile(parseFile(res))
-  debugCompile(instrs)
-  const vm = new GoVirtualMachine(instrs, true)
+  const vm = new GoVirtualMachine(instrs, false)
   vm.run()
 })

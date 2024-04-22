@@ -1,4 +1,4 @@
-import { compile, debugCompile } from '../../compiler/compiler'
+import { compile } from '../../compiler/compiler'
 import { parseFile } from '../../ast/ast'
 import { GoVirtualMachine } from '../go-vm'
 import { GoslangToAstJson } from '../../parser'
@@ -8,24 +8,33 @@ package main
 
 import "fmt"
 
-func f(x int, y int) {
+func f1(y int) {
   for i := 0; i < y; i++ {
-  	print("Thread")
-    print(x)
-    print(2 * i)
+  	print("Thread 1")
+  }
+}
+
+func f2(y int) {
+  for i := 0; i < y; i++ {
+  	print("Thread 2")
+  }
+}
+
+func f3(y int) {
+  for i := 0; i < y; i++ {
+  	print("Main")
   }
 }
 
 func main() {
-  go f(1, 40)
-  go f(2, 40)
-  f(3, 40)
+  go f1(40)
+  go f2(40)
+  f3(40)
 }
 `
 
 GoslangToAstJson(goroutine_str).then(res => {
   const instrs = compile(parseFile(res))
-  debugCompile(instrs)
   const vm = new GoVirtualMachine(instrs, false)
   vm.run()
 })

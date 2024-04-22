@@ -1,11 +1,17 @@
 /*
-Test Case:
-Blocking situations:
-- When both channels are unbuffered and in wrong order. Due to order of send and receive between the goroutines on the channels.
+Test Case: Order of sends and receives is wrong
 
-No blocking ituations:
-- Unbuffered channel to allow for completion of program without blocking due to the presence of a buffer to allow sending.
-- The order of send and receive for each channel matches for the goroutines so the send and receive can execute to completion.
+For an unbuffered channel,
+- sends are blocked if there are no receivers
+- receives are blocked if there is no sender (i.e. no values sent)
+
+
+Expected output:
+- nothing printed, VM does not terminate
+
+Explanation:
+chan1 <- 1 is blocked since there is no receiver, thus chan2 <- 2 does not execute. Since foo() calls print(<-chan2) first, and
+chan2 is empty, it does not print and is blocked
 */
 import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
@@ -25,16 +31,15 @@ func main() {
   chan1 <- 1
   chan2 <- 2
 }
-func foo(chan1 chan int, chan2 chan int) int {
-  <-chan2
-  <-chan1
+func foo(chan1 chan int, chan2 chan int) {
+  print(<-chan2)
+  print(<-chan1)
   //<-chan2
-  return 0
 }
 `
 GoslangToAstJson(gslang_code).then((result: any) => {
   const parsed_ast: nodes.File = parseFile(result)
   const compiled_parsed_ast = compile(parsed_ast)
-  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
+  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, false)
   vm.run()
 })

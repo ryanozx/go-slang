@@ -1,7 +1,9 @@
 /*
 Test Case:
-Blocking should occur when there is an attempt to input more when the channel buffer is full.
-Receiving should free up buffer to prevent blocking on another send
+block on receive on a empty buffered channel
+
+Expected output:
+no output is printed to the screen
 */
 import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
@@ -14,20 +16,13 @@ let gslang_code = `
 package main
 
 func main() {
-  chan1 := make(chan int, 5)
-  chan1 <- 1
-  chan1 <- 2
-  chan1 <- 3
-  chan1 <- 4
-  chan1 <- 5
-  <-chan1 // should block if this is commented out, this should prevent blocking by freeing channel buffer
-  chan1 <- 6
+  chan1 := make(chan int, 10)
+  <-chan1
 }
 `
-
 GoslangToAstJson(gslang_code).then((result: any) => {
   const parsed_ast: nodes.File = parseFile(result)
   const compiled_parsed_ast = compile(parsed_ast)
-  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
+  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, false)
   vm.run()
 })

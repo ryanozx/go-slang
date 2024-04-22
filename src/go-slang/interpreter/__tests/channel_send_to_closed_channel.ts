@@ -1,9 +1,9 @@
 /*
 Test Case:
-block on send on a unbuffered channel
-no blocking and execute to completion when sending on a buffered channel
+After a channel is closed, sending to a closed channel will cause a panic
 
-(Buffered and Unbuffered channels by commenting out the different channel types)
+Expected output:
+Error printed on screen
 */
 import { GoslangToAstJson } from '../../parser'
 import { parseFile } from '../../ast/ast'
@@ -16,14 +16,22 @@ let gslang_code = `
 package main
 
 func main() {
-  //chan1 := make(chan int)
-  chan1 := make(chan int, 10)
+  chan1 := make(chan int, 5)
+
+  close(chan1)
+
   chan1 <- 1
+
 }
 `
+
 GoslangToAstJson(gslang_code).then((result: any) => {
   const parsed_ast: nodes.File = parseFile(result)
   const compiled_parsed_ast = compile(parsed_ast)
-  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, true)
-  vm.run()
+  const vm: GoVirtualMachine = new GoVirtualMachine(compiled_parsed_ast, false)
+  try {
+    vm.run()
+  } catch (e) {
+    console.log(e)
+  }
 })
